@@ -39,12 +39,17 @@ const isSetupRequired = ref(false)
 const isAppReady = ref(false)
 const themeOverrides: GlobalThemeOverrides = {
     common: {
-        primaryColor: '#3f7f68',
-        primaryColorHover: '#34705c',
-        primaryColorPressed: '#285a49',
-        primaryColorSuppl: '#5b9a82',
+        primaryColor: '#007AFF',
+        primaryColorHover: '#1C86FF',
+        primaryColorPressed: '#0062CC',
+        primaryColorSuppl: '#5AC8FA',
+        successColor: '#34C759',
+        warningColor: '#FF9F0A',
+        errorColor: '#FF3B30',
+        textColorBase: '#1D1D1F',
+        bodyColor: '#F5F5F7',
         borderRadius: '8px',
-        fontFamily: 'Galvji, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Microsoft YaHei", sans-serif',
     },
     Button: {
         borderRadiusMedium: '8px',

@@ -83,6 +83,7 @@ import logo_avatar from "./logo/logo_avatar.svg?url"
 import logo_server_error from "./logo/logo_server_error.svg?url"
 import logo_init from "./logo/logo_init.svg?url"
 import logo_config from "./logo/logo_config.svg?url"
+import logo_diary_book from "./logo/logo_diary_book.svg?url"
 
 // Weather
 import weather_cloudy from "./weather/cloudy.svg?url"
@@ -146,12 +147,13 @@ import clipboard from "./icons/clipboard.svg?url"
 export default {
     // LOGO
     logo_icons: {
-        logo: logo,
-        logo_content: logo_content,
-        logo_content_saved: logo_content_saved,
-        logo_title: logo_title,
-        logo_title_saved: logo_title_saved,
-        logo_rounded: logo_rounded,
+        logo: logo_diary_book,
+        logo_content: logo_diary_book,
+        logo_content_saved: logo_diary_book,
+        logo_title: logo_diary_book,
+        logo_title_saved: logo_diary_book,
+        logo_rounded: logo_diary_book,
+        logo_diary_book: logo_diary_book,
         logo_register: logo_register,
         logo_change_password: logo_change_password,
         logo_avatar: logo_avatar,

@@ -57,10 +57,10 @@ export default defineConfig({
             manifest: {
                 name: '标题日记',
                 short_name: "日记",
-                theme_color: "#373737",
+                theme_color: "#F5F5F7",
                 start_url: "./",
                 display: "standalone",
-                background_color: "#373737",
+                background_color: "#F5F5F7",
                 icons: [
                     {
                         src: "logo.svg",

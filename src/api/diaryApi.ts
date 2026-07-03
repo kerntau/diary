@@ -15,7 +15,11 @@ export interface DiaryStorageStatus {
     entriesDir: string
     backupsDir: string
     trashDir: string
+    vaultDir: string
+    financeDir: string
     indexPath: string
+    vaultCardsPath: string
+    financeTransactionsPath: string
     diaryCount: number
     markdownFileCount: number
     backupCount: number
@@ -30,6 +34,33 @@ export interface DiaryFullExport {
     version: number
     storage: DiaryStorageStatus
     entries: Array<EntityDiaryFromServer>
+    vault?: {
+        cards: Array<any>
+    }
+    finance?: {
+        transactions: Array<any>
+        categories: any
+        summary: any
+    }
+}
+
+export interface DiaryContextPayload {
+    city?: string
+    longitude?: string | number
+    latitude?: string | number
+}
+
+export interface DiaryContextResult {
+    locationName: string
+    longitude: string
+    latitude: string
+    weather: string
+    weatherText: string
+    weatherCode: string
+    temperatureOutside: string
+    humidity: string
+    windText: string
+    contextUpdatedAt: string
 }
 
 export default {
@@ -142,6 +173,17 @@ export default {
         return request('post', null, {fileName}, 'diary/trash/restore', 120000) as Promise<{
             success: boolean,
             data: {entry: EntityDiaryFromServer, status: DiaryStorageStatus},
+            message: string
+        }>
+    },
+    resolveContext(payload: DiaryContextPayload): Promise<{
+        success: boolean,
+        data: DiaryContextResult,
+        message: string
+    }> {
+        return request('post', null, payload, 'diary/context/resolve', 60000) as Promise<{
+            success: boolean,
+            data: DiaryContextResult,
             message: string
         }>
     },

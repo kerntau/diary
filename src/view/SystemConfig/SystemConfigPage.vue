@@ -82,6 +82,8 @@
                                 <NDescriptionsItem label="索引文件">{{ storageStatus.indexPath }}</NDescriptionsItem>
                                 <NDescriptionsItem label="备份目录">{{ storageStatus.backupsDir }}</NDescriptionsItem>
                                 <NDescriptionsItem label="回收站目录">{{ storageStatus.trashDir }}</NDescriptionsItem>
+                                <NDescriptionsItem label="保险箱数据">{{ storageStatus.vaultCardsPath }}</NDescriptionsItem>
+                                <NDescriptionsItem label="账单数据">{{ storageStatus.financeTransactionsPath }}</NDescriptionsItem>
                                 <NDescriptionsItem label="最新备份">
                                     {{ storageStatus.latestBackup || '暂无备份' }}
                                 </NDescriptionsItem>
@@ -166,6 +168,26 @@
                     />
                 </div>
             </section>
+
+            <section class="modern-panel">
+                <div class="modern-panel-header">
+                    <h2>旧数据迁移</h2>
+                    <p>扫描旧的“我的银行卡列表”日记和 bill 分类日记，导入到新的保险箱和账单模块。导入前会自动备份。</p>
+                </div>
+                <div class="modern-panel-body storage-stack">
+                    <div class="settings-actions">
+                        <NButton :loading="isPreviewingMigration" @click="previewMigration">
+                            迁移预览
+                        </NButton>
+                        <NButton type="primary" secondary :disabled="!migrationPreview" :loading="isImportingMigration" @click="confirmImportMigration">
+                            导入旧数据
+                        </NButton>
+                    </div>
+                    <NAlert v-if="migrationPreview" type="info" :bordered="false">
+                        可导入 {{ migrationPreview.cards.length }} 张银行卡、{{ migrationPreview.transactions.length }} 条账单。
+                    </NAlert>
+                </div>
+            </section>
         </div>
     </ModernPage>
 </template>
@@ -190,6 +212,7 @@ import {
 import {Archive, Database, Download, KeyRound, RefreshCw, RotateCcw, ScanSearch, Trash2, Wrench} from "@lucide/vue"
 
 import diaryApi, {DiaryStorageStatus} from "@/api/diaryApi"
+import migrationApi, {LegacyMigrationPreview} from "@/api/migrationApi"
 import systemConfigApi from "@/api/systemConfigApi"
 import ModernEmptyState from "@/components/ui/ModernEmptyState.vue"
 import ModernPage from "@/components/ui/ModernPage.vue"
@@ -213,8 +236,11 @@ const isExporting = ref(false)
 const isRebuilding = ref(false)
 const isLoadingTrash = ref(false)
 const isRestoring = ref(false)
+const isPreviewingMigration = ref(false)
+const isImportingMigration = ref(false)
 const storageStatus = ref<DiaryStorageStatus | null>(null)
 const trashFiles = ref<string[]>([])
+const migrationPreview = ref<LegacyMigrationPreview | null>(null)
 
 const form = reactive<AdminSystemConfig>({
     ...DEFAULT_ADMIN_SYSTEM_CONFIG
@@ -384,6 +410,44 @@ async function exportFullDiary() {
         message.error(err?.message || '完整导出失败')
     } finally {
         isExporting.value = false
+    }
+}
+
+async function previewMigration() {
+    isPreviewingMigration.value = true
+    try {
+        const res = await migrationApi.preview()
+        migrationPreview.value = res.data
+        message.info(`预览完成：${res.data.cards.length} 张银行卡，${res.data.transactions.length} 条账单`)
+    } catch (err: any) {
+        message.error(err?.message || '迁移预览失败')
+    } finally {
+        isPreviewingMigration.value = false
+    }
+}
+
+function confirmImportMigration() {
+    if (!migrationPreview.value) return
+    dialog.warning({
+        title: '导入旧数据',
+        content: '导入前会自动备份。原始日记不会删除，但重复导入会产生重复记录。',
+        positiveText: '导入',
+        negativeText: '取消',
+        onPositiveClick: importMigration,
+    })
+}
+
+async function importMigration() {
+    isImportingMigration.value = true
+    try {
+        const res = await migrationApi.importLegacy()
+        message.success(`已导入 ${res.data.importedCards} 张银行卡、${res.data.importedTransactions} 条账单`)
+        migrationPreview.value = null
+        await loadStorageStatus()
+    } catch (err: any) {
+        message.error(err?.message || '导入失败')
+    } finally {
+        isImportingMigration.value = false
     }
 }
 

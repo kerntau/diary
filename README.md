@@ -8,6 +8,8 @@
 - `data/index.json`
 - `data/config.json`
 - `data/backups/`
+- `data/vault/cards.json`
+- `data/finance/transactions.json`
 
 ## 本地运行
 
@@ -40,6 +42,7 @@ npm start
 ```env
 ADMIN_PASSWORD_HASH=
 SESSION_SECRET=replace-with-a-long-random-secret
+VAULT_SECRET=replace-with-another-long-random-secret
 DIARY_DATA_DIR=./data
 PORT=3000
 ```
@@ -58,7 +61,13 @@ npm run hash-password -- "你的新密码"
 - 登录只需要管理员密码；`ADMIN_EMAIL` 仅保留为内部用户资料和旧接口兼容字段。
 - 注册、邀请码、找回密码、安装数据库配置等多用户流程已移除入口。
 - 日记、日历、列表、瀑布流、统计、导出等核心写作功能保留。
-- 账单、银行卡、文件等原项目周边功能尽量兼容；没有独立数据源时返回空数据或从特殊日记内容读取。
+- 银行卡已拆为独立保险箱模块，卡号使用 `VAULT_SECRET` 派生密钥加密保存，列表默认脱敏。
+- 账单已拆为独立结构化模块，保存在 `data/finance/transactions.json`，不再依赖 `bill` 日记分类。
+- 系统设置提供旧数据迁移预览/导入：扫描“我的银行卡列表”日记和旧 `bill` 分类日记，导入前自动备份，原始日记不删除。
+
+## 天气与位置
+
+系统设置里配置和风天气 Host 与 API Key 后，新建今天日记时可以使用浏览器定位或手动城市搜索，自动写入城市、天气、室外温度、湿度和风况。浏览器无法读取室内温度，因此室内温度仍由你手动输入。
 
 ## 授权
 

@@ -197,7 +197,7 @@ const MENU_LIST = [
     {
         name: '账单',
         isShowInMobile: true,
-        isShowInPC: false,
+        isShowInPC: true,
         isNeedAdmin: false,
         icon: SVG_ICONS.tab_icons.billSimple,
         insideComponent: null,
@@ -210,7 +210,7 @@ const MENU_LIST = [
     {
         name: '银行卡',
         isShowInMobile: true,
-        isShowInPC: false,
+        isShowInPC: true,
         isNeedAdmin: false,
         icon: SVG_ICONS.tab_icons.card,
         insideComponent: null,

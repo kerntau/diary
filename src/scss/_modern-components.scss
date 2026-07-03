@@ -1,9 +1,8 @@
 .modern-page {
     min-height: 100dvh;
     padding: 32px;
-    background:
-        linear-gradient(180deg, rgba(246, 248, 244, 0.96), rgba(239, 243, 238, 0.96));
-    color: #17211d;
+    background: var(--diary-bg);
+    color: var(--diary-ink);
 }
 
 .modern-page-header {
@@ -18,22 +17,24 @@
         margin: 0;
         font-size: 28px;
         line-height: 1.25;
-        font-weight: 700;
+        font-weight: 750;
         letter-spacing: 0;
+        color: var(--diary-ink);
     }
 }
 
 .modern-page-eyebrow {
     margin: 0 0 8px;
-    color: #587066;
+    color: var(--diary-accent);
     font-size: 13px;
     font-weight: 700;
+    letter-spacing: 0;
 }
 
 .modern-page-description {
     max-width: 620px;
     margin: 10px 0 0;
-    color: #596961;
+    color: var(--diary-muted);
     font-size: 14px;
     line-height: 1.7;
 }
@@ -60,26 +61,27 @@
 
 .modern-panel {
     grid-column: span 12;
-    border: 1px solid rgba(77, 97, 88, 0.14);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.84);
-    box-shadow: 0 12px 36px rgba(44, 58, 51, 0.08);
+    border: 1px solid var(--diary-border);
+    border-radius: var(--diary-radius);
+    background: var(--diary-surface);
+    box-shadow: var(--diary-hairline-shadow);
     overflow: hidden;
 }
 
 .modern-panel-header {
     padding: 18px 20px 12px;
-    border-bottom: 1px solid rgba(77, 97, 88, 0.1);
+    border-bottom: 1px solid var(--diary-border);
 
     h2 {
         margin: 0;
         font-size: 16px;
         line-height: 1.4;
+        color: var(--diary-ink);
     }
 
     p {
         margin: 6px 0 0;
-        color: #64746c;
+        color: var(--diary-muted);
         font-size: 13px;
         line-height: 1.6;
     }
@@ -98,29 +100,29 @@
 .metric-tile {
     min-height: 92px;
     padding: 14px;
-    border: 1px solid rgba(77, 97, 88, 0.12);
-    border-radius: 8px;
-    background: #fbfcfa;
+    border: 1px solid var(--diary-border);
+    border-radius: var(--diary-radius);
+    background: var(--diary-surface-muted);
 }
 
 .metric-tile-label {
-    color: #66776f;
+    color: var(--diary-muted);
     font-size: 12px;
     line-height: 1.4;
 }
 
 .metric-tile-value {
     margin-top: 8px;
-    color: #17211d;
+    color: var(--diary-ink);
     font-size: 24px;
     line-height: 1.2;
-    font-weight: 700;
+    font-weight: 750;
     font-variant-numeric: tabular-nums;
 }
 
 .metric-tile-caption {
     margin-top: 8px;
-    color: #7a887f;
+    color: var(--diary-muted-2);
     font-size: 12px;
     line-height: 1.4;
 }
@@ -134,11 +136,11 @@
     gap: 14px;
     padding: 24px;
     text-align: center;
-    color: #52655c;
+    color: var(--diary-muted);
 
     h3 {
         margin: 0;
-        color: #1c2823;
+        color: var(--diary-ink);
         font-size: 16px;
     }
 

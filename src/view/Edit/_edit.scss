@@ -377,3 +377,64 @@ textarea{
   }
 
 }
+
+.context-section{
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--diary-border);
+  border-radius: var(--diary-radius);
+  background: var(--diary-surface);
+  box-shadow: var(--diary-hairline-shadow);
+}
+.context-section-header{
+  h3{
+    margin: 0;
+    color: var(--diary-ink);
+    font-size: 15px;
+  }
+  p{
+    margin: 4px 0 0;
+    color: var(--diary-muted);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+}
+.weather-summary{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--diary-radius);
+  background: var(--diary-surface-muted);
+  strong, span{
+    display: block;
+  }
+  strong{
+    color: var(--diary-ink);
+  }
+  span{
+    margin-top: 3px;
+    color: var(--diary-muted);
+    font-size: 12px;
+  }
+}
+.weather-temp{
+  color: var(--diary-accent);
+  font-size: 26px;
+  font-weight: 750;
+  small{
+    font-size: 13px;
+  }
+}
+.context-actions{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.context-updated{
+  margin: 0;
+  color: var(--diary-muted);
+  font-size: 12px;
+}

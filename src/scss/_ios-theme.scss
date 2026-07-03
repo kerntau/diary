@@ -1,0 +1,305 @@
+@use "plugin" as *;
+
+:root {
+  --diary-bg: #f5f5f7;
+  --diary-bg-elevated: #fbfbfd;
+  --diary-surface: #ffffff;
+  --diary-surface-strong: #ffffff;
+  --diary-surface-muted: #f2f2f7;
+  --diary-border: rgba(60, 60, 67, 0.16);
+  --diary-border-strong: rgba(60, 60, 67, 0.28);
+  --diary-ink: #1d1d1f;
+  --diary-muted: #6e6e73;
+  --diary-muted-2: #8e8e93;
+  --diary-accent: #007aff;
+  --diary-accent-pressed: #0062cc;
+  --diary-success: #34c759;
+  --diary-warning: #ff9f0a;
+  --diary-danger: #ff3b30;
+  --diary-card-shadow: 0 12px 34px rgba(0, 0, 0, 0.08);
+  --diary-hairline-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+  --diary-focus: rgba(0, 122, 255, 0.28);
+  --diary-radius: 8px;
+  --diary-radius-sm: 6px;
+  --diary-transition: 180ms cubic-bezier(0.2, 0, 0, 1);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --diary-bg: #000000;
+    --diary-bg-elevated: #111113;
+    --diary-surface: #1c1c1e;
+    --diary-surface-strong: #2c2c2e;
+    --diary-surface-muted: #111113;
+    --diary-border: rgba(235, 235, 245, 0.16);
+    --diary-border-strong: rgba(235, 235, 245, 0.28);
+    --diary-ink: #f5f5f7;
+    --diary-muted: #aeaeb2;
+    --diary-muted-2: #8e8e93;
+    --diary-accent: #0a84ff;
+    --diary-accent-pressed: #409cff;
+    --diary-success: #30d158;
+    --diary-warning: #ffd60a;
+    --diary-danger: #ff453a;
+    --diary-card-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+    --diary-hairline-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+    --diary-focus: rgba(10, 132, 255, 0.34);
+    color-scheme: dark;
+  }
+}
+
+html {
+  background: var(--diary-bg);
+}
+
+body {
+  background: var(--diary-bg);
+  color: var(--diary-ink);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", "Microsoft YaHei", sans-serif;
+  letter-spacing: 0;
+}
+
+* {
+  scrollbar-color: var(--diary-border-strong) transparent;
+}
+
+*:focus-visible {
+  outline: 3px solid var(--diary-focus);
+  outline-offset: 2px;
+}
+
+button,
+a,
+.icon-btn,
+.menu-list-group-item,
+.diary-list-item {
+  touch-action: manipulation;
+}
+
+.navbar {
+  background: rgba(251, 251, 253, 0.86) !important;
+  border-bottom: 1px solid var(--diary-border);
+  box-shadow: var(--diary-hairline-shadow);
+  backdrop-filter: blur(20px);
+
+  .nav-edit-title,
+  .btn-text {
+    color: var(--diary-ink) !important;
+  }
+
+  .btn-text {
+    border-radius: var(--diary-radius-sm);
+
+    &:hover {
+      background: rgba(0, 122, 255, 0.1);
+    }
+  }
+}
+
+.icon-btn {
+  border-radius: var(--diary-radius-sm);
+  transition: background-color var(--diary-transition), transform var(--diary-transition);
+
+  &:hover {
+    background-color: rgba(0, 122, 255, 0.1);
+
+    img {
+      background-color: transparent;
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+
+    img {
+      background-color: transparent;
+    }
+  }
+}
+
+.diary {
+  background: var(--diary-bg);
+
+  .diary-list-container,
+  .diary-container {
+    border-radius: 0;
+    background: var(--diary-bg);
+  }
+
+  .diary-list-container {
+    border-right-color: var(--diary-border);
+  }
+}
+
+.diary-list-group-container,
+.diary-edit-container,
+.diary-detail {
+  background: var(--diary-bg);
+}
+
+.diary-list-item,
+.article,
+.diary-edit-meta .editor-form,
+.edit-category-selector,
+.weather-selector,
+.year-container,
+.no-diary-list,
+.end-of-diary,
+.modern-panel {
+  background: var(--diary-surface);
+  border-color: var(--diary-border);
+  box-shadow: var(--diary-hairline-shadow);
+}
+
+.diary-list-item {
+  transition: background-color var(--diary-transition), transform var(--diary-transition);
+
+  &:hover {
+    background-color: var(--diary-bg-elevated);
+  }
+
+  .date,
+  .detail .title {
+    color: var(--diary-ink);
+  }
+
+  .detail:after {
+    border-bottom-color: var(--diary-border);
+  }
+}
+
+.article {
+  border-radius: var(--diary-radius);
+
+  .article-header {
+    background: var(--diary-surface-muted);
+    border-bottom-color: var(--diary-border);
+    color: var(--diary-muted);
+  }
+
+  .article-body,
+  .article-body .content {
+    color: var(--diary-ink);
+  }
+}
+
+textarea,
+input,
+button,
+.btn {
+  transition: border-color var(--diary-transition), box-shadow var(--diary-transition), background-color var(--diary-transition), color var(--diary-transition);
+}
+
+textarea,
+input {
+  border-color: var(--diary-border);
+  border-radius: var(--diary-radius);
+  background: var(--diary-surface);
+  color: var(--diary-ink);
+
+  &:focus {
+    border-color: var(--diary-accent);
+    box-shadow: 0 0 0 3px var(--diary-focus);
+  }
+}
+
+.search-bar {
+  background: rgba(245, 245, 247, 0.9);
+  border-bottom: 1px solid var(--diary-border);
+  backdrop-filter: blur(18px);
+
+  input {
+    min-height: 44px;
+    background: var(--diary-surface);
+  }
+}
+
+.body-login-bg {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(0, 122, 255, 0.13), transparent 34%),
+    var(--diary-bg) !important;
+}
+
+.body-login {
+  .logo-wrapper .logo {
+    width: 112px;
+    height: 112px;
+    border: 1px solid var(--diary-border);
+    background: var(--diary-surface);
+    box-shadow: var(--diary-card-shadow);
+  }
+
+  .input-group label {
+    color: var(--diary-muted);
+  }
+
+  .input-group input {
+    min-height: 48px;
+    border: 1px solid var(--diary-border);
+    background: var(--diary-surface);
+    color: var(--diary-ink);
+  }
+
+  .copyright,
+  .copyright a,
+  .copyright .version {
+    color: var(--diary-muted);
+  }
+}
+
+.btn-active {
+  background: var(--diary-accent);
+  color: white;
+
+  &:hover {
+    background: var(--diary-accent-pressed);
+  }
+}
+
+.btn-inactive {
+  color: var(--diary-muted);
+  border-color: var(--diary-border);
+  background: var(--diary-surface-muted);
+}
+
+.pop-msg {
+  border-radius: var(--diary-radius);
+  box-shadow: var(--diary-card-shadow);
+}
+
+@media (min-width: $grid-separate-width-md) {
+  .diary .diary-list-container {
+    width: 440px;
+  }
+}
+
+@media (min-width: $grid-separate-width-big) {
+  .diary-edit-container {
+    padding: 24px;
+  }
+
+  .diary-detail {
+    padding: 48px 8%;
+  }
+}
+
+@media (max-width: $grid-separate-width-md) {
+  .navbar {
+    background: rgba(251, 251, 253, 0.94) !important;
+  }
+
+  .diary-edit-container {
+    padding: 12px 10px 88px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .navbar {
+    background: rgba(28, 28, 30, 0.88) !important;
+  }
+
+  .search-bar {
+    background: rgba(0, 0, 0, 0.82);
+  }
+}

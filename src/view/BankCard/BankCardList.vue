@@ -1,257 +1,354 @@
 <template>
-    <PageHeader title="银行卡列表" subtitle="点击复制卡号">
-        <TabIcon @click="editCardInfo" icon="编辑"/>
-    </PageHeader>
-    <MenuPanelContainer>
-        <div v-if="isLoading" class="pt-8 pb-8">
-            <Loading :loading="isLoading"/>
-        </div>
-        <div v-else>
-            <div class="bank-card-container"
-                 v-if="cardListAll.length > 0"
-            >
-                <div class="bank-card-list">
-                    <BankCard
-                        :index="index"
-                        :card="card"
-                        v-for="(card, index) in cardListAll"
-                        :key="index"/>
+    <ModernPage
+        eyebrow="Vault"
+        title="银行卡保险箱"
+        description="银行卡已从日记正文中拆出，独立加密保存。列表默认脱敏，查看完整卡号需要确认。"
+    >
+        <template #actions>
+            <NButton @click="router.go(-1)">返回</NButton>
+            <NButton type="primary" @click="openCreate">
+                <template #icon><Plus :size="18"/></template>
+                添加银行卡
+            </NButton>
+        </template>
+
+        <div class="vault-layout">
+            <NAlert type="info" :bordered="false">
+                卡号使用服务端 `VAULT_SECRET` 加密保存。公网部署前请在 `.env` 中配置独立强密钥。
+            </NAlert>
+
+            <NSpin :show="isLoading">
+                <div v-if="cards.length" class="vault-grid">
+                    <article
+                        v-for="card in cards"
+                        :key="card.id"
+                        class="vault-card"
+                        :style="{ '--card-accent': card.color || '#007AFF' }"
+                    >
+                        <div class="vault-card-top">
+                            <div>
+                                <p>{{ card.cardType }}</p>
+                                <h2>{{ card.bankName || '未命名银行卡' }}</h2>
+                            </div>
+                            <CreditCard :size="28"/>
+                        </div>
+                        <div class="vault-card-number">{{ displayCardNo(card) }}</div>
+                        <div class="vault-card-meta">
+                            <span v-if="card.branch">{{ card.branch }}</span>
+                            <span v-if="card.creditLimit">额度 {{ formatMoney(card.creditLimit) }}</span>
+                            <span v-if="card.repaymentDay">还款日 {{ card.repaymentDay }}</span>
+                        </div>
+                        <div class="vault-card-actions">
+                            <NButton size="small" secondary @click="confirmReveal(card)">
+                                <template #icon><Eye :size="16"/></template>
+                                查看
+                            </NButton>
+                            <NButton size="small" secondary @click="copyCard(card)">
+                                <template #icon><Copy :size="16"/></template>
+                                复制
+                            </NButton>
+                            <NButton size="small" tertiary @click="openEdit(card)">
+                                <template #icon><Pencil :size="16"/></template>
+                                编辑
+                            </NButton>
+                            <NButton size="small" tertiary type="error" @click="confirmDelete(card)">
+                                <template #icon><Trash2 :size="16"/></template>
+                                删除
+                            </NButton>
+                        </div>
+                    </article>
                 </div>
-            </div>
-            <div v-else class="bank-tip">
-                <Loading v-if="isLoading" :loading="isLoading"/>
-                <template v-else>
-                    <p>您目前没有添加任何银行卡</p>
-                    <p>------------------------</p>
-                    <p>请新建名为 "我的银行卡列表" 的日记</p>
-                    <p>日记内容格式如下，</p>
-                    <p>之后，将会在此显示银行卡列表</p>
-                    <p>------------------------</p>
-                    <div class="bank-card-example">
-                        <pre>{{ example }}</pre>
-                    </div>
 
-                    <div class="year-tip">添加后，效果如下，点击卡号即可复制卡号</div>
-
-                    <div class="bank-card-list pt-4">
-                        <BankCard
-                            :index="index"
-                            :card="card"
-                            v-for="(card, index) in cardListExample"
-                            :key="index"/>
-                    </div>
-                </template>
-
-            </div>
+                <ModernEmptyState
+                    v-else
+                    title="还没有银行卡"
+                    description="用独立表单添加银行卡，不再通过写一篇特殊日记来维护资料。"
+                    :icon="CreditCard"
+                >
+                    <template #actions>
+                        <NButton type="primary" @click="openCreate">添加银行卡</NButton>
+                    </template>
+                </ModernEmptyState>
+            </NSpin>
         </div>
-    </MenuPanelContainer>
 
+        <NModal v-model:show="isEditorOpen" preset="card" :title="editingCard?.id ? '编辑银行卡' : '添加银行卡'" class="vault-modal">
+            <NForm label-placement="top" :model="form">
+                <NGrid :cols="2" :x-gap="14" :y-gap="12" responsive="screen">
+                    <NFormItemGi label="银行名称">
+                        <NInput v-model:value="form.bankName" placeholder="例如 招商银行"/>
+                    </NFormItemGi>
+                    <NFormItemGi label="卡类型">
+                        <NSelect v-model:value="form.cardType" :options="cardTypeOptions"/>
+                    </NFormItemGi>
+                    <NFormItemGi label="卡号">
+                        <NInput v-model:value="form.cardNo" placeholder="仅保存加密密文"/>
+                    </NFormItemGi>
+                    <NFormItemGi label="主题色">
+                        <NColorPicker v-model:value="form.color" :show-alpha="false"/>
+                    </NFormItemGi>
+                    <NFormItemGi label="开户行">
+                        <NInput v-model:value="form.branch"/>
+                    </NFormItemGi>
+                    <NFormItemGi label="额度">
+                        <NInputNumber v-model:value="form.creditLimit" :min="0" clearable style="width: 100%"/>
+                    </NFormItemGi>
+                    <NFormItemGi label="账单日">
+                        <NInput v-model:value="form.statementDay" placeholder="例如 每月 8 日"/>
+                    </NFormItemGi>
+                    <NFormItemGi label="还款日">
+                        <NInput v-model:value="form.repaymentDay" placeholder="例如 每月 28 日"/>
+                    </NFormItemGi>
+                    <NFormItemGi label="备注" :span="2">
+                        <NInput v-model:value="form.note" type="textarea" :autosize="{minRows: 3, maxRows: 6}"/>
+                    </NFormItemGi>
+                </NGrid>
+            </NForm>
+            <template #footer>
+                <div class="modal-actions">
+                    <NButton @click="isEditorOpen = false">取消</NButton>
+                    <NButton type="primary" :loading="isSaving" :disabled="!form.bankName" @click="saveCard">保存</NButton>
+                </div>
+            </template>
+        </NModal>
+    </ModernPage>
 </template>
 
 <script lang="ts" setup>
-import Loading from "@/components/Loading.vue"
-import BankCard from "@/view/BankCard/BankCard.vue"
-import TabIcon from "@/components/TabIcon.vue"
-import PageHeader from "@/framework/pageHeader/PageHeader.vue"
+import {computed, onMounted, reactive, ref} from "vue"
+import {useRouter} from "vue-router"
+import {
+    NAlert,
+    NButton,
+    NColorPicker,
+    NForm,
+    NFormItemGi,
+    NGrid,
+    NInput,
+    NInputNumber,
+    NModal,
+    NSelect,
+    NSpin,
+    useDialog,
+    useMessage
+} from "naive-ui"
+import {Copy, CreditCard, Eye, Pencil, Plus, Trash2} from "@lucide/vue"
 
-import ClipboardJS from "clipboard"
-import bankCardApi from "@/api/bankCardApi.ts"
+import vaultApi, {VaultCard, VaultCardInput} from "@/api/vaultApi"
+import ModernEmptyState from "@/components/ui/ModernEmptyState.vue"
+import ModernPage from "@/components/ui/ModernPage.vue"
 
-import diaryApi from "@/api/diaryApi.ts"
-import {popMessage} from "@/utility.ts";
-import {onBeforeUnmount, onMounted, ref} from "vue";
-import {useRouter} from "vue-router";
-import MenuPanelContainer from "@/framework/MenuPanelContainer.vue";
-import {BankCardEntity} from "@/view/BankCard/BankCard.ts";
-import {useStatisticStore} from "@/pinia/useStatisticStore.ts";
-import { useProjectStore } from "@/pinia/useProjectStore.ts";
-
-const cardListExample = [
-    {
-        cardName: '建设银行',
-        cardNo: '6226 2216 3456 0955',
-        cardType: '信用卡',
-        extraInfos: [
-            {key: '地址', value: '山东济南'},
-            {key: '开户行', value: '山东济南财富广场分行'},
-        ]
-    },
-    {
-        cardName: '中国银行',
-        cardNo: '4567 2216 3456 0955',
-        cardType: '储蓄卡',
-        extraInfos: [
-            {key: '地址', value: '山东济南'},
-            {key: '开户行', value: '山东济南财富广场分行'}
-        ]
-    },
-]
-const example = `银行：民生银行
-卡号：6226 2216 1178 4567
-类别：储蓄卡
-开户行：山东济南办卡
-刷卡次数：5
-
-银行：民生银行
-卡号：6226 2216 1178 4567
-类别：信用卡
-开户行：山东济南办卡
-额度：20000
-验证码：123/4
-到期日：2029-08-10
-`
-
-const isLoading = ref(false)
-const cardListAll = ref<Array<BankCardEntity>>([])
-const cardListStore = ref([])
-const cardListCredit = ref([])
-const clipboard = ref(null) // clipboard obj
 const router = useRouter()
-const projectStore = useProjectStore()
+const message = useMessage()
+const dialog = useDialog()
 
-onMounted(()=>{
-    getBankCards()
+const cards = ref<VaultCard[]>([])
+const revealedCards = ref<Record<number, string>>({})
+const isLoading = ref(false)
+const isSaving = ref(false)
+const isEditorOpen = ref(false)
+const editingCard = ref<VaultCard | null>(null)
+
+const form = reactive<VaultCardInput>({
+    bankName: '',
+    cardType: '储蓄卡',
+    cardNo: '',
+    branch: '',
+    statementDay: '',
+    repaymentDay: '',
+    creditLimit: 0,
+    note: '',
+    color: '#007AFF',
 })
-onBeforeUnmount(()=>{
-    clipboard.value && clipboard.value.destroy()
-})
 
-// 编辑银行卡信息
-function editCardInfo(){
+const cardTypeOptions = [
+    {label: '储蓄卡', value: '储蓄卡'},
+    {label: '信用卡', value: '信用卡'},
+    {label: '虚拟卡', value: '虚拟卡'},
+    {label: '其他', value: '其他'},
+]
 
-    // 为防止列表因类别筛选，而不显示银行卡列表
-    projectStore.SET_FILTERED_CATEGORIES([])  // 打开所有类别
-    projectStore.SET_IS_FILTERED_SHARED(false)  // 不筛选共享
+onMounted(loadCards)
 
-    const keyword = '我的银行卡列表'
-    projectStore.SET_KEYWORD([keyword])  // 将 keyword 设置为关键词，为了筛选日记列表，只显示这一条内容
-    let params = {
-        categories: JSON.stringify(useStatisticStore().getCategoryAllFromLocalStorage().map(item => item.name_en)),
-        keywords: JSON.stringify([keyword]),
-        pageSize: 100,
-        pageNo: 1
+async function loadCards() {
+    isLoading.value = true
+    try {
+        const res = await vaultApi.list(false)
+        cards.value = res.data
+    } catch (err: any) {
+        message.error(err?.message || '读取银行卡失败')
+    } finally {
+        isLoading.value = false
     }
-    diaryApi
-        .list(params)
-        .then(res => {
-            if (res.data.length === 1){
-                router.push({
-                    name: 'Edit',
-                    params: {
-                        id: res.data[0].id
-                    }
-                })
-            } else {
-                popMessage('warning', '未找到名为 “我的银行卡列表” 的日记内容')
-            }
-        })
 }
 
-function getBankCards(){
-    isLoading.value = true // 请求的时候显示loading
-    bankCardApi
-        .getBankCard()
-        .then(res => {
-            isLoading.value = false
-            if (res.data) {
-                processCardInfo(res.data.trim())
-            } else {
-                // 没有设置任何银行卡信息
-            }
-        })
-        .catch(() => {
-            isLoading.value = false
-        })
+function resetForm(card?: VaultCard) {
+    editingCard.value = card || null
+    Object.assign(form, {
+        bankName: card?.bankName || '',
+        cardType: card?.cardType || '储蓄卡',
+        cardNo: '',
+        branch: card?.branch || '',
+        statementDay: card?.statementDay || '',
+        repaymentDay: card?.repaymentDay || '',
+        creditLimit: card?.creditLimit || 0,
+        note: card?.note || '',
+        color: card?.color || '#007AFF',
+    })
 }
-function processCardInfo(allCardString: string){
-    // card list
-    let tempStrArray = allCardString.split('\n\n').filter(item => item.length > 0)
-    // card item
-    tempStrArray.forEach(cardStr => {
-        let cardMap = new Map(
-            cardStr
-                .split('\n')
-                .map(cardItem => cardItem.split('：'))
-        )
-        let cardInfo: BankCardEntity = {}
-        let extraInfos = []
-        cardMap.forEach((value, key) => {
-            switch (key){
-                case '卡号': cardInfo.cardNo = value; break;
-                case '银行': cardInfo.cardName = value; break;
-                case '类别': cardInfo.cardType = value; break;
-                default:
-                    extraInfos.push({key, value})
-                    break
-            }
-        })
-        cardInfo['extraInfos'] = extraInfos
-        cardListAll.value.push(cardInfo)
-        cardListStore.value = cardListAll.value.filter(item => item.cardType.indexOf('储蓄卡') > -1)
-        cardListCredit.value = cardListAll.value.filter(item => item.cardType.indexOf('信用卡') > -1)
-    })
 
-    // 绑定剪贴板操作方法
-    clipboard.value = new ClipboardJS('.bankcard-no', {
-        text: trigger => {
-            return trigger.getAttribute('data-clipboard')
-        },
+function openCreate() {
+    resetForm()
+    isEditorOpen.value = true
+}
+
+function openEdit(card: VaultCard) {
+    resetForm(card)
+    isEditorOpen.value = true
+}
+
+async function saveCard() {
+    isSaving.value = true
+    try {
+        if (editingCard.value?.id) {
+            await vaultApi.update({...form, id: editingCard.value.id})
+        } else {
+            await vaultApi.add(form)
+        }
+        message.success('银行卡已保存')
+        isEditorOpen.value = false
+        await loadCards()
+    } catch (err: any) {
+        message.error(err?.message || '保存失败')
+    } finally {
+        isSaving.value = false
+    }
+}
+
+function confirmReveal(card: VaultCard) {
+    dialog.warning({
+        title: '查看完整卡号',
+        content: '完整卡号属于敏感信息，确认后本次页面会临时显示。',
+        positiveText: '确认查看',
+        negativeText: '取消',
+        onPositiveClick: () => revealCard(card.id),
     })
-    clipboard.value.on('success', ()=>{  // 还可以添加监听事件，如：复制成功后提示
-        popMessage('success', '卡号已复制到剪贴板', null)
+}
+
+async function revealCard(id: number) {
+    try {
+        const res = await vaultApi.list(true)
+        const card = res.data.find(item => item.id === id)
+        if (card?.cardNo) {
+            revealedCards.value[id] = card.cardNo
+            message.success('完整卡号已临时显示')
+        }
+    } catch (err: any) {
+        message.error(err?.message || '查看失败')
+    }
+}
+
+async function copyCard(card: VaultCard) {
+    const value = revealedCards.value[card.id] || card.cardNoMasked
+    await navigator.clipboard.writeText(value.replace(/\s/g, ''))
+    message.success(revealedCards.value[card.id] ? '完整卡号已复制' : '脱敏卡号已复制')
+}
+
+function confirmDelete(card: VaultCard) {
+    dialog.error({
+        title: '删除银行卡',
+        content: `确定删除 ${card.bankName || card.cardNoMasked} 吗？`,
+        positiveText: '删除',
+        negativeText: '取消',
+        onPositiveClick: () => deleteCard(card.id),
     })
+}
+
+async function deleteCard(id: number) {
+    try {
+        await vaultApi.delete(id)
+        message.success('银行卡已删除')
+        await loadCards()
+    } catch (err: any) {
+        message.error(err?.message || '删除失败')
+    }
+}
+
+function displayCardNo(card: VaultCard) {
+    return revealedCards.value[card.id] || card.cardNoMasked
+}
+
+function formatMoney(value: number) {
+    return new Intl.NumberFormat('zh-CN', {style: 'currency', currency: 'CNY', maximumFractionDigits: 0}).format(value)
 }
 </script>
 
 <style scoped lang="scss">
-@use "../../scss/plugin" as *;
-.bank-tip{
-    padding: 30px;
-    color: $color-main;
+.vault-layout{
+    display: grid;
+    gap: 16px;
 }
-.bank-card-example{
-    padding: 20px 0;
-    text-align: left;
-    pre{
-        font-family: "JetBrainsMonoDiary";
-    }
+.vault-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
 }
-
-
-.bank-card-container{
-}
-
-.bank-card-list-header{
-    margin-bottom: 30px;
-    font-size: $fz-big;
-    font-weight: bold;
+.vault-card{
+    min-height: 190px;
+    padding: 20px;
+    border-radius: var(--diary-radius);
     color: white;
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--card-accent) 92%, white), color-mix(in srgb, var(--card-accent) 60%, black));
+    box-shadow: var(--diary-card-shadow);
 }
-.bank-card-list{
+.vault-card-top{
     display: flex;
-    justify-content: flex-start;
-    flex-flow: row wrap;
-}
-
-// MOBILE
-@media (max-width: $grid-separate-width-sm) {
-    .bank-tip{
-        padding: 0;
+    justify-content: space-between;
+    gap: 16px;
+    p{
+        margin: 0 0 6px;
+        opacity: .78;
+        font-size: 12px;
     }
-    .bank-card-list-header {
-        margin-top: 20px;
-        margin-bottom: 20px;
-        padding-left: 10px;
-    }
-    .bank-card-list{
-        flex-flow: column nowrap;
+    h2{
+        margin: 0;
+        font-size: 22px;
+        line-height: 1.2;
+        color: white;
     }
 }
-
-// DARK
-@media (prefers-color-scheme: dark) {
-    .bank-card-container{
+.vault-card-number{
+    margin-top: 30px;
+    font-family: "JetBrainsMonoDiary", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: clamp(19px, 4vw, 26px);
+    letter-spacing: .04em;
+}
+.vault-card-meta{
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-height: 26px;
+    margin-top: 14px;
+    span{
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.18);
+        font-size: 12px;
     }
 }
-
+.vault-card-actions{
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+.modal-actions{
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.vault-modal{
+    max-width: 720px;
+}
 </style>

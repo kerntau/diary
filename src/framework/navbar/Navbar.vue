@@ -65,16 +65,6 @@
                 </div>
 
                 <div v-show="!projectStore.isMenuShowed" v-if="!projectStore.isInMobileMode"
-                     @click="goToPage('BankCard')">
-                    <TabIcon icon="银行卡"/>
-                </div>
-                <div v-show="!projectStore.isMenuShowed" v-if="!projectStore.isInMobileMode"
-                     @click="goToPage('Bill')">
-                    <TabIcon icon="账单简单"/>
-                </div>
-
-
-                <div v-show="!projectStore.isMenuShowed" v-if="!projectStore.isInMobileMode"
                      @click="toggleTodoList">
                     <TabIcon
                         icon="待办-显示"

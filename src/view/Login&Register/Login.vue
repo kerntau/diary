@@ -1,47 +1,67 @@
 <template>
-    <div class="body-login-bg" :style="`min-height: ${projectStore.insets.windowsHeight}px`">
+    <div class="body-login-bg ios-login-bg" :style="`min-height: ${projectStore.insets.windowsHeight}px`">
         <transition
             enter-active-class="animated-fast fadeIn"
             leave-active-class="animated-fast faceOut"
         >
-            <div class="body-login" v-if="show">
-                <div class="logo-wrapper">
-                    <div class="logo">
-                        <img :src="SVG_ICONS.logo_icons.logo_rounded" alt="LOGIN-LOGO">
-                    </div>
-                </div>
-
-                <form method="post" id="regForm" @submit.prevent="loginSubmit">
-                    <div class="input-group">
-                        <label for="password">密码</label>
-                        <div class="password-field">
-                            <input
-                                v-model="password"
-                                name="password"
-                                :type="isPasswordVisible ? 'text' : 'password'"
-                                id="password"
-                                autocomplete="current-password"
-                                autofocus>
-                            <button type="button" @click="isPasswordVisible = !isPasswordVisible">
-                                {{ isPasswordVisible ? '隐藏' : '显示' }}
-                            </button>
+            <main class="ios-login-shell" v-if="show">
+                <section class="ios-login-card" aria-labelledby="login-title">
+                    <div class="logo-wrapper">
+                        <div class="logo">
+                            <img :src="SVG_ICONS.logo_icons.logo_rounded" alt="日记">
                         </div>
                     </div>
-                    <button :class="['btn', 'mt-8', verified ? 'btn-active' : 'btn-inactive']"
-                            :disabled="!verified || loginLabel === '登录中...'"
-                            type="submit">{{ loginLabel }}</button>
-                </form>
-                <div :class="['footer', {center: !is_show_demo_account}]">
-                    <a v-if="is_show_demo_account" @click="useTestAccount">试用演示账户</a>
-                </div>
-                <div class="copyright">
-                    <a class="project-name" target="_blank"
-                       href="http://kylebing.cn/diary/#/share/6766">{{ packageInfo.nameZh }}</a>
-                    <span class="version ml-1">v{{ packageInfo.version }}</span>
-                    <span class="ml-1"> {{ packageInfo.dateInit.substring(0,4) }}-{{ packageInfo.dateModify.substring(0,4) }}</span>
-                </div>
-            </div>
 
+                    <div class="ios-login-heading">
+                        <p>Private diary</p>
+                        <h1 id="login-title">回到你的日记</h1>
+                        <span>输入管理员密码后继续写作。</span>
+                    </div>
+
+                    <NForm class="ios-login-form" :show-feedback="false" @submit.prevent="loginSubmit">
+                        <NFormItem label="登录密码">
+                            <NInput
+                                v-model:value="password"
+                                :type="isPasswordVisible ? 'text' : 'password'"
+                                size="large"
+                                autocomplete="current-password"
+                                autofocus
+                                placeholder="默认密码 diary"
+                                @keyup.enter="loginSubmit"
+                            >
+                                <template #suffix>
+                                    <NButton quaternary size="small" type="primary" @click="isPasswordVisible = !isPasswordVisible">
+                                        {{ isPasswordVisible ? '隐藏' : '显示' }}
+                                    </NButton>
+                                </template>
+                            </NInput>
+                        </NFormItem>
+                        <NButton
+                            block
+                            size="large"
+                            type="primary"
+                            attr-type="submit"
+                            :loading="isLoggingIn"
+                            :disabled="!verified"
+                            @click="loginSubmit"
+                        >
+                            {{ loginLabel }}
+                        </NButton>
+                    </NForm>
+
+                    <div :class="['footer', {center: !is_show_demo_account}]">
+                        <NButton v-if="is_show_demo_account" quaternary type="primary" @click="useTestAccount">
+                            试用演示账户
+                        </NButton>
+                    </div>
+                </section>
+
+                <div class="copyright">
+                    <span class="project-name">{{ packageInfo.nameZh }}</span>
+                    <span class="version ml-1">v{{ packageInfo.version }}</span>
+                    <span class="ml-1">{{ packageInfo.dateModify }}</span>
+                </div>
+            </main>
 
         </transition>
     </div>
@@ -51,9 +71,8 @@
 import packageInfo from "../../../package.json"
 
 import userApi from "@/api/userApi.ts"
-import billApi from "@/api/billApi.ts";
 
-import {popMessage, setAuthorization, setBillKeys} from "@/utility.ts";
+import {popMessage, setAuthorization} from "@/utility.ts";
 import {useProjectStore} from "@/pinia/useProjectStore.ts";
 import {useSystemConfigStore} from "@/pinia/useSystemConfigStore.ts";
 const projectStore = useProjectStore()
@@ -61,6 +80,7 @@ const systemConfigStore = useSystemConfigStore()
 import {computed, onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
 import SVG_ICONS from "@/assets/icons/SVG_ICONS.ts";
+import {NButton, NForm, NFormItem, NInput} from "naive-ui";
 
 const router = useRouter()
 
@@ -75,6 +95,7 @@ onMounted(()=> {
 const password = ref('')
 const isPasswordVisible = ref(false)
 const loginLabel = ref('登录')
+const isLoggingIn = ref(false)
 const systemConfig = computed(() => systemConfigStore.config)
 const is_show_demo_account = computed(() => systemConfig.value.is_show_demo_account)
 const passwordVerified = computed(() => {
@@ -86,8 +107,9 @@ const verified = computed(() => {
 
 
 function loginSubmit() {
-    if (verified.value){
+    if (verified.value && !isLoggingIn.value){
         loginLabel.value = '登录中...'
+        isLoggingIn.value = true
         let requestData = {
             password: password.value,
         }
@@ -106,7 +128,6 @@ function loginSubmit() {
                     city : res.data.city,
                     geolocation : res.data.geolocation,
                 })
-                getBillKeys()
                 popMessage('success', res.message, () => router.push({name: 'Index'}))
                 loginLabel.value = '登录成功'
             })
@@ -114,21 +135,14 @@ function loginSubmit() {
                 loginLabel.value = '登录失败'
                 popMessage('danger', err.message, () => loginLabel.value = '登录', 5)
             })
+            .finally(() => {
+                isLoggingIn.value = false
+            })
     } else {
 
     }
 }
 
-function getBillKeys() {
-    billApi
-        .keys()
-        .then(res => {
-            setBillKeys(res.data)
-        })
-        .catch(err => {
-            popMessage('warning', err.message)
-        })
-}
 function useTestAccount() {
     password.value = systemConfig.value.demo_account_password
 }
@@ -137,6 +151,61 @@ function useTestAccount() {
 </script>
 <style lang="scss" scoped>
 @use "../../scss/plugin" as *;
+.ios-login-bg{
+    align-items: center;
+    padding: 24px;
+}
+.ios-login-shell{
+    position: relative;
+    width: min(100%, 420px);
+    min-height: min(620px, calc(100dvh - 48px));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.ios-login-card{
+    width: 100%;
+    padding: 32px;
+    border: 1px solid var(--diary-border);
+    border-radius: var(--diary-radius);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: var(--diary-card-shadow);
+    backdrop-filter: blur(20px);
+}
+.ios-login-heading{
+    margin-bottom: 28px;
+    text-align: center;
+    p{
+        margin-bottom: 6px;
+        color: var(--diary-accent);
+        font-size: $fz-small;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    h1{
+        margin: 0;
+        color: var(--diary-ink);
+        font-size: 30px;
+        line-height: 1.18;
+        font-weight: 750;
+        letter-spacing: 0;
+    }
+    span{
+        display: block;
+        margin-top: 10px;
+        color: var(--diary-muted);
+        font-size: $fz-main;
+    }
+}
+.ios-login-form{
+    :deep(.n-form-item-label){
+        color: var(--diary-muted);
+        font-weight: 600;
+    }
+}
+.footer{
+    justify-content: center;
+}
 .copyright{
     left: 0;
     width: 100%;
@@ -172,6 +241,19 @@ function useTestAccount() {
         &:hover{
             color: $color-main;
         }
+    }
+}
+@media (prefers-color-scheme: dark) {
+    .ios-login-card{
+        background: rgba(28, 28, 30, 0.82);
+    }
+}
+@media (max-width: $grid-separate-width-sm) {
+    .ios-login-bg{
+        padding: 16px;
+    }
+    .ios-login-card{
+        padding: 24px;
     }
 }
 </style>

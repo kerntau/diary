@@ -95,6 +95,26 @@
             <!-- 类别选择 -->
             <EditCategorySelector :category="diary.category" @change="setCategory"/>
 
+            <MoodTagPicker
+                v-model:mood="diary.mood"
+                v-model:tags="diary.tags"
+            />
+
+            <WeatherLocationCard
+                :loading="isResolvingContext"
+                :weather="diary.weather"
+                :weather-text="diary.weatherText || ''"
+                :temperature-inside="String(diary.temperature || '')"
+                :temperature-outside="String(diary.temperature_outside || '')"
+                :location-name="diary.locationName || ''"
+                :context-updated-at="diary.contextUpdatedAt || ''"
+                @update:temperature-inside="value => diary.temperature = value"
+                @update:temperature-outside="value => diary.temperature_outside = value"
+                @resolve-location="resolveContextFromBrowser"
+                @resolve-city="resolveContextFromCity"
+                @clear="clearDiaryContext"
+            />
+
             <!--  周报载入按钮  -->
             <LoadingButton
                 :is-loading="isLoading"
@@ -120,6 +140,8 @@ import ButtonSmall from "@/components/ButtonSmall.vue";
 import TemperatureSetItem from "./TemperatureSetItem.vue";
 import PossibleBillKeySelector from "./PossibleBillKeySelector.vue";
 import EditorStatusBar from "./EditorStatusBar.vue";
+import MoodTagPicker from "./MoodTagPicker.vue";
+import WeatherLocationCard from "./WeatherLocationCard.vue";
 
 import {
     popMessage,
@@ -155,6 +177,7 @@ const isNew = ref(true)
 const isLoading = ref(false)
 const isSavingDiary = ref(false)  // 是否正在保存日记
 const hasTriedAutoRefreshWeather = ref(false)
+const isResolvingContext = ref(false)
 const draftSavedAt = ref('')
 const lastSavedAt = ref('')
 const hasLocalDraft = ref(false)
@@ -171,6 +194,16 @@ const diary = ref<EntityDiaryForm>({
     category: 'life',
     temperature: '',
     temperature_outside: '',
+    mood: 'calm',
+    tags: [],
+    locationName: '',
+    longitude: '',
+    latitude: '',
+    weatherText: '',
+    weatherCode: '',
+    humidity: '',
+    windText: '',
+    contextUpdatedAt: '',
 })
 
 const contentTextareaStyle = computed(() => {
@@ -191,6 +224,16 @@ const diaryOrigin = ref<EntityDiaryForm>({ // 不需要跟上面一样，但需�
     category: 'life',
     temperature: '',
     temperature_outside: '',
+    mood: 'calm',
+    tags: [],
+    locationName: '',
+    longitude: '',
+    latitude: '',
+    weatherText: '',
+    weatherCode: '',
+    humidity: '',
+    windText: '',
+    contextUpdatedAt: '',
 })
 
 const editorWordCount = computed(() => {
@@ -896,6 +939,16 @@ function getDiary(diaryId: number) {
             diary.value.is_markdown = !!tempDiary.is_markdown
             diary.value.temperature = temperatureProcessSTC(tempDiary.temperature)
             diary.value.temperature_outside = temperatureProcessSTC(tempDiary.temperature_outside)
+            diary.value.mood = tempDiary.mood || 'calm'
+            diary.value.tags = Array.isArray(tempDiary.tags) ? tempDiary.tags : []
+            diary.value.locationName = tempDiary.locationName || ''
+            diary.value.longitude = tempDiary.longitude || ''
+            diary.value.latitude = tempDiary.latitude || ''
+            diary.value.weatherText = tempDiary.weatherText || ''
+            diary.value.weatherCode = tempDiary.weatherCode || ''
+            diary.value.humidity = tempDiary.humidity || ''
+            diary.value.windText = tempDiary.windText || ''
+            diary.value.contextUpdatedAt = tempDiary.contextUpdatedAt || ''
 
             if (projectStore.isHideContent){
                 diary.value.title = realTitle.replace(/[^，。 \n]/g, '*')
@@ -947,6 +1000,16 @@ function saveDiary() {
         is_public: diary.value.is_public ? 1 : 0,
         is_markdown: diary.value.is_markdown ? 1 : 0,
         date: dateFormatter(diary.value.date),
+        mood: diary.value.mood,
+        tags: diary.value.tags,
+        locationName: diary.value.locationName,
+        longitude: diary.value.longitude,
+        latitude: diary.value.latitude,
+        weatherText: diary.value.weatherText,
+        weatherCode: diary.value.weatherCode,
+        humidity: diary.value.humidity,
+        windText: diary.value.windText,
+        contextUpdatedAt: diary.value.contextUpdatedAt,
     }
     if (isNew.value){
         isSavingDiary.value = true
@@ -1029,6 +1092,16 @@ function createDiary() {
         category: diary.value.category,
         temperature: '',
         temperature_outside: '',
+        mood: 'calm',
+        tags: [],
+        locationName: '',
+        longitude: '',
+        latitude: '',
+        weatherText: '',
+        weatherCode: '',
+        humidity: '',
+        windText: '',
+        contextUpdatedAt: '',
     }
     // 新建日记时也记录原始数据
     Object.assign(diaryOrigin.value, diary.value)
@@ -1043,13 +1116,8 @@ function tryRefreshWeatherForTodayDiary() {
     if (!Moment(diary.value.date).isSame(new Date(), 'day')) return
     if (hasTriedAutoRefreshWeather.value) return
 
-    const canFetch = !!getAuthorization()?.geolocation &&
-        !!projectConfig.value.hefeng_weather_api_host &&
-        !!projectConfig.value.hefeng_weather_api_key
-    if (!canFetch) return
-
     hasTriedAutoRefreshWeather.value = true
-    getCurrentTemperature()
+    resolveContextFromBrowser({silent: true})
 }
 
 function recoverDiary() {
@@ -1078,8 +1146,93 @@ function convertToServerVersion() { // 转换为数据库格式的日记
         date_create: date,
         date_modify: "",
         is_public: diary.value.is_public ? 1 : 0,
-        is_markdown: diary.value.is_markdown ? 1 : 0
+        is_markdown: diary.value.is_markdown ? 1 : 0,
+        mood: diary.value.mood,
+        tags: diary.value.tags,
+        locationName: diary.value.locationName,
+        longitude: diary.value.longitude,
+        latitude: diary.value.latitude,
+        weatherText: diary.value.weatherText,
+        weatherCode: diary.value.weatherCode,
+        humidity: diary.value.humidity,
+        windText: diary.value.windText,
+        contextUpdatedAt: diary.value.contextUpdatedAt,
     }
+}
+
+function applyDiaryContext(context) {
+    diary.value.locationName = context.locationName || ''
+    diary.value.longitude = context.longitude || ''
+    diary.value.latitude = context.latitude || ''
+    diary.value.weather = context.weather || diary.value.weather
+    diary.value.weatherText = context.weatherText || ''
+    diary.value.weatherCode = context.weatherCode || ''
+    diary.value.temperature_outside = context.temperatureOutside || ''
+    diary.value.humidity = context.humidity || ''
+    diary.value.windText = context.windText || ''
+    diary.value.contextUpdatedAt = context.contextUpdatedAt || new Date().toISOString()
+}
+
+function resolveContextFromBrowser(options: {silent?: boolean} = {}) {
+    if (!navigator.geolocation) {
+        if (!options.silent) popMessage('warning', '浏览器不支持定位')
+        return
+    }
+    isResolvingContext.value = true
+    navigator.geolocation.getCurrentPosition(
+        position => {
+            diaryApi.resolveContext({
+                longitude: position.coords.longitude,
+                latitude: position.coords.latitude,
+            })
+                .then(res => {
+                    applyDiaryContext(res.data)
+                    if (!options.silent) popMessage('success', '天气与位置已识别')
+                })
+                .catch(err => {
+                    if (!options.silent) popMessage('warning', err.message || '天气位置识别失败', null, 4)
+                })
+                .finally(() => {
+                    isResolvingContext.value = false
+                })
+        },
+        error => {
+            isResolvingContext.value = false
+            if (!options.silent) popMessage('warning', error.message || '定位授权失败', null, 4)
+        },
+        {enableHighAccuracy: false, timeout: 8000, maximumAge: 1000 * 60 * 20}
+    )
+}
+
+function resolveContextFromCity(city: string) {
+    if (!city.trim()) {
+        popMessage('warning', '请先输入城市')
+        return
+    }
+    isResolvingContext.value = true
+    diaryApi.resolveContext({city})
+        .then(res => {
+            applyDiaryContext(res.data)
+            popMessage('success', '天气与位置已识别')
+        })
+        .catch(err => {
+            popMessage('warning', err.message || '天气位置识别失败', null, 4)
+        })
+        .finally(() => {
+            isResolvingContext.value = false
+        })
+}
+
+function clearDiaryContext() {
+    diary.value.locationName = ''
+    diary.value.longitude = ''
+    diary.value.latitude = ''
+    diary.value.weatherText = ''
+    diary.value.weatherCode = ''
+    diary.value.humidity = ''
+    diary.value.windText = ''
+    diary.value.contextUpdatedAt = ''
+    diary.value.temperature_outside = ''
 }
 
 

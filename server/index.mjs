@@ -15,24 +15,41 @@ const dataDir = path.resolve(process.env.DIARY_DATA_DIR || path.join(rootDir, "d
 const entriesDir = path.join(dataDir, "entries");
 const backupsDir = path.join(dataDir, "backups");
 const trashDir = path.join(dataDir, "trash");
+const vaultDir = path.join(dataDir, "vault");
+const financeDir = path.join(dataDir, "finance");
 const indexPath = path.join(dataDir, "index.json");
 const configPath = path.join(dataDir, "config.json");
+const vaultCardsPath = path.join(vaultDir, "cards.json");
+const financeTransactionsPath = path.join(financeDir, "transactions.json");
+const financeCategoriesPath = path.join(financeDir, "categories.json");
 const distDir = path.join(rootDir, "dist");
 
 const port = Number(process.env.PORT || 3000);
 const sessionSecret = process.env.SESSION_SECRET || "local-diary-session-secret-change-me";
 const adminEmail = process.env.ADMIN_EMAIL || "me@diary.local";
 const defaultDevPassword = "diary";
+const vaultSecret = process.env.VAULT_SECRET || `${sessionSecret}:local-vault-secret`;
 
 const categories = [
-  { name: "生活", name_en: "life", color: "#4f8f7b" },
-  { name: "工作", name_en: "work", color: "#3f78b5" },
-  { name: "随笔", name_en: "memo", color: "#8a6fb0" },
-  { name: "待办", name_en: "todo", color: "#c46f55" },
-  { name: "代码", name_en: "code", color: "#5f6f7b" },
-  { name: "周报", name_en: "week", color: "#b48b38" },
-  { name: "账单", name_en: "bill", color: "#7f9550" },
+  { name: "日常", name_en: "life", color: "#007AFF" },
+  { name: "工作", name_en: "work", color: "#5856D6" },
+  { name: "灵感", name_en: "idea", color: "#FF9F0A" },
+  { name: "待办", name_en: "todo", color: "#34C759" },
+  { name: "学习", name_en: "study", color: "#5AC8FA" },
+  { name: "旅行", name_en: "travel", color: "#AF52DE" },
 ];
+
+const legacyCategoryMap = new Map([
+  ["memo", "idea"],
+  ["code", "study"],
+  ["week", "work"],
+  ["bill", "life"],
+]);
+
+const defaultFinanceCategories = {
+  expense: ["餐饮", "交通", "购物", "居住", "娱乐", "医疗", "学习", "旅行", "其他"],
+  income: ["工资", "奖金", "理财", "报销", "其他"],
+};
 
 const defaultProfile = {
   uid: 1,
@@ -101,9 +118,20 @@ async function ensureData() {
   await fs.mkdir(entriesDir, { recursive: true });
   await fs.mkdir(backupsDir, { recursive: true });
   await fs.mkdir(trashDir, { recursive: true });
+  await fs.mkdir(vaultDir, { recursive: true });
+  await fs.mkdir(financeDir, { recursive: true });
 
   if (!fsSync.existsSync(indexPath)) {
     await writeJson(indexPath, { nextId: 1, entries: [] });
+  }
+  if (!fsSync.existsSync(vaultCardsPath)) {
+    await writeJson(vaultCardsPath, { nextId: 1, cards: [] });
+  }
+  if (!fsSync.existsSync(financeTransactionsPath)) {
+    await writeJson(financeTransactionsPath, { nextId: 1, transactions: [] });
+  }
+  if (!fsSync.existsSync(financeCategoriesPath)) {
+    await writeJson(financeCategoriesPath, defaultFinanceCategories);
   }
   if (!fsSync.existsSync(configPath)) {
     await writeJson(configPath, {
@@ -135,6 +163,146 @@ async function readJson(filePath, fallback) {
 async function writeJson(filePath, value) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
+
+function deriveVaultKey() {
+  return crypto.createHash("sha256").update(String(vaultSecret)).digest();
+}
+
+function encryptSecret(value) {
+  const text = String(value || "").trim();
+  if (!text) return null;
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", deriveVaultKey(), iv);
+  const encrypted = Buffer.concat([cipher.update(text, "utf8"), cipher.final()]);
+  return {
+    v: 1,
+    iv: iv.toString("base64"),
+    tag: cipher.getAuthTag().toString("base64"),
+    data: encrypted.toString("base64"),
+  };
+}
+
+function decryptSecret(payload) {
+  if (!payload?.iv || !payload?.tag || !payload?.data) return "";
+  const decipher = crypto.createDecipheriv("aes-256-gcm", deriveVaultKey(), Buffer.from(payload.iv, "base64"));
+  decipher.setAuthTag(Buffer.from(payload.tag, "base64"));
+  return Buffer.concat([decipher.update(Buffer.from(payload.data, "base64")), decipher.final()]).toString("utf8");
+}
+
+function onlyDigits(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function maskCardNo(cardNo, fallbackLast4 = "") {
+  const digits = onlyDigits(cardNo);
+  const last4 = digits.slice(-4) || String(fallbackLast4 || "").slice(-4);
+  return last4 ? `**** **** **** ${last4}` : "未填写";
+}
+
+async function readVaultCards() {
+  const raw = await readJson(vaultCardsPath, { nextId: 1, cards: [] });
+  const cards = Array.isArray(raw.cards) ? raw.cards : [];
+  return {
+    nextId: Number(raw.nextId) || cards.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0) + 1,
+    cards,
+  };
+}
+
+async function writeVaultCards(value) {
+  const nextId = Math.max(
+    Number(value.nextId) || 1,
+    value.cards.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0) + 1,
+  );
+  await writeJson(vaultCardsPath, { nextId, cards: value.cards });
+}
+
+function cardToPublic(card, { reveal = false } = {}) {
+  const fullCardNo = reveal ? decryptSecret(card.cardNoCipher) : "";
+  return {
+    id: Number(card.id),
+    bankName: card.bankName || card.cardName || "",
+    cardType: card.cardType || "储蓄卡",
+    cardNo: reveal ? fullCardNo : "",
+    cardNoMasked: maskCardNo(fullCardNo, card.cardNoLast4),
+    cardNoLast4: card.cardNoLast4 || "",
+    branch: card.branch || "",
+    statementDay: card.statementDay || "",
+    repaymentDay: card.repaymentDay || "",
+    creditLimit: Number(card.creditLimit || 0),
+    note: card.note || "",
+    color: card.color || "#007AFF",
+    createdAt: card.createdAt || "",
+    updatedAt: card.updatedAt || "",
+    migratedFrom: card.migratedFrom || "",
+  };
+}
+
+function normalizeCardInput(body = {}, existing = {}) {
+  const now = new Date().toISOString();
+  const cardNo = String(body.cardNo ?? "").trim();
+  const encrypted = cardNo ? encryptSecret(cardNo) : existing.cardNoCipher;
+  const digits = onlyDigits(cardNo);
+  return {
+    ...existing,
+    bankName: String(body.bankName ?? body.cardName ?? existing.bankName ?? "").trim(),
+    cardType: String(body.cardType ?? existing.cardType ?? "储蓄卡").trim(),
+    cardNoCipher: encrypted || null,
+    cardNoLast4: digits ? digits.slice(-4) : existing.cardNoLast4 || "",
+    branch: String(body.branch ?? body["开户行"] ?? existing.branch ?? "").trim(),
+    statementDay: body.statementDay ?? existing.statementDay ?? "",
+    repaymentDay: body.repaymentDay ?? existing.repaymentDay ?? "",
+    creditLimit: Number(body.creditLimit ?? existing.creditLimit ?? 0) || 0,
+    note: String(body.note ?? existing.note ?? "").trim(),
+    color: String(body.color ?? existing.color ?? "#007AFF").trim() || "#007AFF",
+    createdAt: existing.createdAt || now,
+    updatedAt: now,
+    migratedFrom: body.migratedFrom ?? existing.migratedFrom ?? "",
+  };
+}
+
+async function readFinanceTransactions() {
+  const raw = await readJson(financeTransactionsPath, { nextId: 1, transactions: [] });
+  const transactions = Array.isArray(raw.transactions) ? raw.transactions : [];
+  return {
+    nextId: Number(raw.nextId) || transactions.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0) + 1,
+    transactions,
+  };
+}
+
+async function writeFinanceTransactions(value) {
+  const nextId = Math.max(
+    Number(value.nextId) || 1,
+    value.transactions.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0) + 1,
+  );
+  await writeJson(financeTransactionsPath, { nextId, transactions: value.transactions });
+}
+
+async function readFinanceCategories() {
+  const raw = await readJson(financeCategoriesPath, defaultFinanceCategories);
+  return {
+    expense: Array.isArray(raw.expense) ? raw.expense : defaultFinanceCategories.expense,
+    income: Array.isArray(raw.income) ? raw.income : defaultFinanceCategories.income,
+  };
+}
+
+function normalizeTransactionInput(body = {}, existing = {}) {
+  const now = new Date().toISOString();
+  const type = body.type === "income" ? "income" : "expense";
+  return {
+    ...existing,
+    date: toDateString(body.date ?? existing.date ?? new Date()),
+    type,
+    amount: Math.abs(Number(body.amount ?? existing.amount ?? 0)) || 0,
+    category: String(body.category ?? existing.category ?? "其他").trim() || "其他",
+    accountId: body.accountId === "" || body.accountId === undefined ? "" : Number(body.accountId),
+    accountName: String(body.accountName ?? existing.accountName ?? "").trim(),
+    merchant: String(body.merchant ?? body.item ?? existing.merchant ?? "").trim(),
+    note: String(body.note ?? existing.note ?? "").trim(),
+    createdAt: existing.createdAt || now,
+    updatedAt: now,
+    migratedFrom: body.migratedFrom ?? existing.migratedFrom ?? "",
+  };
 }
 
 async function readIndex() {
@@ -259,6 +427,11 @@ function parseMaybeJson(value, fallback) {
   }
 }
 
+function normalizeCategory(category) {
+  const value = String(category || "life");
+  return legacyCategoryMap.get(value) || value;
+}
+
 function toDateString(value) {
   const date = value ? new Date(String(value).replace(" ", "T")) : new Date();
   if (Number.isNaN(date.getTime())) return new Date().toISOString();
@@ -289,7 +462,7 @@ function entryToDiary(entry, content = "") {
     temperature: Number(entry.temperature ?? -273),
     temperature_outside: Number(entry.temperature_outside ?? -273),
     weather: entry.weather || "sunny",
-    category: entry.category || entry.mood || "life",
+    category: normalizeCategory(entry.category || entry.mood || "life"),
     date_create: entry.createdAt || entry.date_create || entry.date || new Date().toISOString(),
     date_modify: entry.updatedAt || entry.date_modify || entry.date || new Date().toISOString(),
     uid: 1,
@@ -301,17 +474,26 @@ function entryToDiary(entry, content = "") {
 function diaryToFrontmatter(diary, filePath, createdAt) {
   const content = String(diary.content || "");
   const title = String(diary.title || "").trim() || "未命名日记";
+  const category = normalizeCategory(diary.category);
   const updatedAt = new Date().toISOString();
   return {
     id: Number(diary.id),
     title,
     date: toDateString(diary.date),
-    mood: diary.category || "life",
-    tags: [diary.category || "life"].filter(Boolean),
-    category: diary.category || "life",
+    mood: diary.mood || category,
+    tags: Array.isArray(diary.tags) ? diary.tags : [category].filter(Boolean),
+    category,
     weather: diary.weather || "sunny",
     temperature: Number(diary.temperature ?? -273),
     temperature_outside: Number(diary.temperature_outside ?? -273),
+    locationName: diary.locationName || "",
+    longitude: diary.longitude || "",
+    latitude: diary.latitude || "",
+    weatherText: diary.weatherText || "",
+    weatherCode: diary.weatherCode || "",
+    humidity: diary.humidity || "",
+    windText: diary.windText || "",
+    contextUpdatedAt: diary.contextUpdatedAt || "",
     is_public: Number(diary.is_public || 0),
     is_markdown: Number(diary.is_markdown ?? 1),
     createdAt: createdAt || updatedAt,
@@ -409,6 +591,9 @@ async function backupCurrentData(reason) {
   const backupPath = path.join(backupsDir, `${stamp}-${reason}.json`);
   const index = await readIndex();
   const config = await readConfig();
+  const vault = await readJson(vaultCardsPath, { nextId: 1, cards: [] });
+  const financeTransactions = await readJson(financeTransactionsPath, { nextId: 1, transactions: [] });
+  const financeCategories = await readJson(financeCategoriesPath, defaultFinanceCategories);
   const entries = await Promise.all(
     index.entries.map(async (entry) => {
       try {
@@ -434,6 +619,11 @@ async function backupCurrentData(reason) {
     createdAt: new Date().toISOString(),
     index,
     config,
+    vault,
+    finance: {
+      transactions: financeTransactions,
+      categories: financeCategories,
+    },
     entries,
   });
   return backupPath;
@@ -542,7 +732,11 @@ async function getStorageStatus() {
     entriesDir,
     backupsDir,
     trashDir,
+    vaultDir,
+    financeDir,
     indexPath,
+    vaultCardsPath,
+    financeTransactionsPath,
     diaryCount: index.entries.length,
     markdownFileCount: markdownCount,
     backupCount: backupFiles.length,
@@ -602,11 +796,202 @@ async function rebuildIndexFromFiles({ dryRun = false } = {}) {
 async function buildFullExport(params) {
   const list = await filterEntries(params);
   const status = await getStorageStatus();
+  const vault = await readVaultCards();
+  const finance = await readFinanceTransactions();
+  const financeCategories = await readFinanceCategories();
   return {
     exportedAt: new Date().toISOString(),
-    version: 1,
+    version: 2,
     storage: status,
     entries: list,
+    vault: {
+      cards: vault.cards.map((card) => cardToPublic(card)),
+    },
+    finance: {
+      transactions: finance.transactions,
+      categories: financeCategories,
+      summary: summarizeFinance(finance.transactions),
+    },
+  };
+}
+
+function summarizeFinance(transactions) {
+  const monthMap = new Map();
+  let income = 0;
+  let expense = 0;
+  for (const item of transactions) {
+    const amount = Number(item.amount || 0);
+    if (item.type === "income") income += amount;
+    else expense += amount;
+    const date = new Date(item.date);
+    const month = Number.isNaN(date.getTime())
+      ? "未知"
+      : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    if (!monthMap.has(month)) {
+      monthMap.set(month, { month, income: 0, expense: 0, count: 0 });
+    }
+    const bucket = monthMap.get(month);
+    bucket.count += 1;
+    if (item.type === "income") bucket.income += amount;
+    else bucket.expense += amount;
+  }
+  return {
+    income,
+    expense,
+    balance: income - expense,
+    count: transactions.length,
+    months: [...monthMap.values()].sort((a, b) => String(b.month).localeCompare(String(a.month))),
+  };
+}
+
+function parseLegacyCardText(content = "") {
+  return String(content || "")
+    .split(/\n\s*\n/g)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .map((block) => {
+      const result = {};
+      for (const line of block.split(/\r?\n/)) {
+        const index = line.indexOf("：") > -1 ? line.indexOf("：") : line.indexOf(":");
+        if (index === -1) continue;
+        const key = line.slice(0, index).trim();
+        const value = line.slice(index + 1).trim();
+        if (!key || !value) continue;
+        if (key === "银行") result.bankName = value;
+        else if (key === "卡号") result.cardNo = value;
+        else if (key === "类别") result.cardType = value;
+        else if (key === "开户行") result.branch = value;
+        else if (key === "额度") result.creditLimit = Number(value) || 0;
+        else result.note = [result.note, `${key}: ${value}`].filter(Boolean).join("\n");
+      }
+      return result.bankName || result.cardNo ? result : null;
+    })
+    .filter(Boolean);
+}
+
+function parseLegacyBillContent(content = "", date = new Date()) {
+  return String(content || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const match = line.match(/^(.+?)\s+(-?\d+(?:\.\d{1,2})?)$/);
+      if (!match) return null;
+      const amount = Number(match[2]);
+      if (!Number.isFinite(amount) || amount === 0) return null;
+      return normalizeTransactionInput({
+        date,
+        type: amount > 0 ? "income" : "expense",
+        amount: Math.abs(amount),
+        merchant: match[1],
+        category: "其他",
+        migratedFrom: "legacy-bill-diary",
+      });
+    })
+    .filter(Boolean);
+}
+
+async function buildMigrationPreview() {
+  const params = new URLSearchParams({ keywords: JSON.stringify([]), categories: JSON.stringify([]) });
+  const list = await filterEntries(params);
+  const cardDiary = list.find((entry) => entry.title === "我的银行卡列表");
+  const cards = cardDiary ? parseLegacyCardText(cardDiary.content) : [];
+  const billEntries = list.filter((entry) => entry.category === "bill" || entry.mood === "bill");
+  const transactions = billEntries.flatMap((entry) => parseLegacyBillContent(entry.content, entry.date));
+  return {
+    cards: cards.map((card, index) => ({ ...card, id: index + 1, cardNoMasked: maskCardNo(card.cardNo) })),
+    transactions,
+    sources: {
+      cardDiaryId: cardDiary?.id || null,
+      billDiaryIds: billEntries.map((entry) => entry.id),
+    },
+  };
+}
+
+async function importLegacyData() {
+  const preview = await buildMigrationPreview();
+  await backupCurrentData("before-migration");
+  const vault = await readVaultCards();
+  const finance = await readFinanceTransactions();
+  for (const card of preview.cards) {
+    const id = vault.nextId++;
+    vault.cards.push({ id, ...normalizeCardInput({ ...card, migratedFrom: "legacy-card-diary" }) });
+  }
+  for (const transaction of preview.transactions) {
+    const id = finance.nextId++;
+    finance.transactions.push({ id, ...normalizeTransactionInput(transaction) });
+  }
+  await writeVaultCards(vault);
+  await writeFinanceTransactions(finance);
+  return {
+    importedCards: preview.cards.length,
+    importedTransactions: preview.transactions.length,
+  };
+}
+
+function mapQWeatherCode(code) {
+  const value = Number(code);
+  if ([100, 150].includes(value)) return "sunny";
+  if ([101, 102, 103, 151, 152, 153].includes(value)) return "cloudy";
+  if ([104, 154].includes(value)) return "overcast";
+  if (value >= 300 && value < 400) return value >= 302 && value <= 304 ? "thunderstorm" : "rain";
+  if (value >= 400 && value < 500) return "snow";
+  if ([500, 501, 509, 510, 514, 515].includes(value)) return "fog";
+  if ([502, 511, 512, 513].includes(value)) return "smog";
+  if (value >= 503 && value <= 508) return "sandstorm";
+  return "sunny";
+}
+
+async function fetchJson(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`天气服务请求失败：${response.status}`);
+  return response.json();
+}
+
+async function resolveDiaryContext(input = {}) {
+  const config = await readConfig();
+  const host = String(config.systemConfig.hefeng_weather_api_host || "").trim();
+  const key = String(config.systemConfig.hefeng_weather_api_key || "").trim();
+  if (!host || !key) {
+    throw new Error("请先在系统设置中配置和风天气 Host 和 API Key");
+  }
+  const city = String(input.city || "").trim();
+  const lon = input.longitude ?? input.lon;
+  const lat = input.latitude ?? input.lat;
+  const location = city || (lon && lat ? `${lon},${lat}` : "");
+  if (!location) {
+    throw new Error("缺少城市或经纬度");
+  }
+
+  let place = null;
+  const geoUrl = new URL(`https://${host}/geo/v2/city/lookup`);
+  geoUrl.searchParams.set("key", key);
+  geoUrl.searchParams.set("location", location);
+  geoUrl.searchParams.set("number", "1");
+  const geo = await fetchJson(geoUrl);
+  if (geo.code === "200" && Array.isArray(geo.location) && geo.location.length > 0) {
+    place = geo.location[0];
+  }
+  const weatherLocation = place ? `${place.lon},${place.lat}` : location;
+  const weatherUrl = new URL(`https://${host}/v7/weather/now`);
+  weatherUrl.searchParams.set("key", key);
+  weatherUrl.searchParams.set("location", weatherLocation);
+  const weather = await fetchJson(weatherUrl);
+  if (weather.code !== "200") {
+    throw new Error(`天气服务返回异常：${weather.code || "unknown"}`);
+  }
+  const now = weather.now || {};
+  return {
+    locationName: place ? [place.name, place.adm2, place.adm1].filter(Boolean).join(" · ") : city,
+    longitude: place?.lon || lon || "",
+    latitude: place?.lat || lat || "",
+    weather: mapQWeatherCode(now.icon),
+    weatherText: now.text || "",
+    weatherCode: now.icon || "",
+    temperatureOutside: now.temp === undefined ? "" : String(now.temp),
+    humidity: now.humidity || "",
+    windText: [now.windDir, now.windScale ? `${now.windScale}级` : ""].filter(Boolean).join(" "),
+    contextUpdatedAt: new Date().toISOString(),
   };
 }
 
@@ -756,6 +1141,11 @@ async function handleApi(req, res, route, params) {
     return;
   }
 
+  if (route === "diary/context/resolve" && req.method === "POST") {
+    ok(res, await resolveDiaryContext(body || {}), "上下文已识别");
+    return;
+  }
+
   if (route === "diary/storage/status" && req.method === "GET") {
     ok(res, await getStorageStatus());
     return;
@@ -782,6 +1172,135 @@ async function handleApi(req, res, route, params) {
   }
   if (route === "diary/export-full" && req.method === "GET") {
     ok(res, await buildFullExport(params));
+    return;
+  }
+
+  if (route === "vault/cards" && req.method === "GET") {
+    const vault = await readVaultCards();
+    const reveal = params.get("reveal") === "1";
+    ok(res, vault.cards.map((card) => cardToPublic(card, { reveal })));
+    return;
+  }
+  if (route === "vault/cards" && req.method === "POST") {
+    const vault = await readVaultCards();
+    const id = vault.nextId;
+    const card = { id, ...normalizeCardInput(body || {}) };
+    vault.cards.push(card);
+    vault.nextId = id + 1;
+    await writeVaultCards(vault);
+    ok(res, cardToPublic(card), "银行卡已保存");
+    return;
+  }
+  if (route === "vault/cards" && req.method === "PATCH") {
+    const id = Number(body?.id || params.get("id"));
+    const vault = await readVaultCards();
+    const idx = vault.cards.findIndex((card) => Number(card.id) === id);
+    if (idx === -1) {
+      fail(res, "银行卡不存在", 404);
+      return;
+    }
+    vault.cards[idx] = { ...vault.cards[idx], ...normalizeCardInput(body || {}, vault.cards[idx]), id };
+    await writeVaultCards(vault);
+    ok(res, cardToPublic(vault.cards[idx]), "银行卡已保存");
+    return;
+  }
+  if (route === "vault/cards" && req.method === "DELETE") {
+    const id = Number(body?.id || params.get("id"));
+    const vault = await readVaultCards();
+    const before = vault.cards.length;
+    vault.cards = vault.cards.filter((card) => Number(card.id) !== id);
+    if (vault.cards.length === before) {
+      fail(res, "银行卡不存在", 404);
+      return;
+    }
+    await writeVaultCards(vault);
+    ok(res, null, "银行卡已删除");
+    return;
+  }
+
+  if (route === "finance/categories" && req.method === "GET") {
+    ok(res, await readFinanceCategories());
+    return;
+  }
+  if (route === "finance/categories" && req.method === "PATCH") {
+    const categoriesNext = {
+      ...await readFinanceCategories(),
+      ...(body || {}),
+    };
+    await writeJson(financeCategoriesPath, categoriesNext);
+    ok(res, categoriesNext, "账单分类已保存");
+    return;
+  }
+  if (route === "finance/transactions" && req.method === "GET") {
+    const finance = await readFinanceTransactions();
+    const type = params.get("type");
+    const keyword = String(params.get("keyword") || "").toLowerCase();
+    const from = params.get("from");
+    const to = params.get("to");
+    const fromTime = from ? new Date(String(from).replace(" ", "T")).getTime() : null;
+    const toTime = to ? new Date(String(to).replace(" ", "T")).getTime() : null;
+    const rows = finance.transactions
+      .filter((item) => !type || item.type === type)
+      .filter((item) => {
+        if (!keyword) return true;
+        return `${item.category} ${item.merchant} ${item.note} ${item.accountName}`.toLowerCase().includes(keyword);
+      })
+      .filter((item) => {
+        const time = new Date(item.date).getTime();
+        return (!fromTime || time >= fromTime) && (!toTime || time <= toTime);
+      })
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || Number(b.id) - Number(a.id));
+    ok(res, rows);
+    return;
+  }
+  if (route === "finance/transactions" && req.method === "POST") {
+    const finance = await readFinanceTransactions();
+    const id = finance.nextId;
+    const transaction = { id, ...normalizeTransactionInput(body || {}) };
+    finance.transactions.push(transaction);
+    finance.nextId = id + 1;
+    await writeFinanceTransactions(finance);
+    ok(res, transaction, "账单已保存");
+    return;
+  }
+  if (route === "finance/transactions" && req.method === "PATCH") {
+    const id = Number(body?.id || params.get("id"));
+    const finance = await readFinanceTransactions();
+    const idx = finance.transactions.findIndex((item) => Number(item.id) === id);
+    if (idx === -1) {
+      fail(res, "账单不存在", 404);
+      return;
+    }
+    finance.transactions[idx] = { ...finance.transactions[idx], ...normalizeTransactionInput(body || {}, finance.transactions[idx]), id };
+    await writeFinanceTransactions(finance);
+    ok(res, finance.transactions[idx], "账单已保存");
+    return;
+  }
+  if (route === "finance/transactions" && req.method === "DELETE") {
+    const id = Number(body?.id || params.get("id"));
+    const finance = await readFinanceTransactions();
+    const before = finance.transactions.length;
+    finance.transactions = finance.transactions.filter((item) => Number(item.id) !== id);
+    if (finance.transactions.length === before) {
+      fail(res, "账单不存在", 404);
+      return;
+    }
+    await writeFinanceTransactions(finance);
+    ok(res, null, "账单已删除");
+    return;
+  }
+  if (route === "finance/summary" && req.method === "GET") {
+    const finance = await readFinanceTransactions();
+    ok(res, summarizeFinance(finance.transactions));
+    return;
+  }
+
+  if (route === "migration/legacy/preview" && req.method === "GET") {
+    ok(res, await buildMigrationPreview(), "迁移预览已生成");
+    return;
+  }
+  if (route === "migration/legacy/import" && req.method === "POST") {
+    ok(res, await importLegacyData(), "旧数据已导入结构化模块");
     return;
   }
 
@@ -933,8 +1452,8 @@ async function handleApi(req, res, route, params) {
     return;
   }
   if (route === "bank-card" && req.method === "GET") {
-    const list = await filterEntries(new URLSearchParams({ keywords: JSON.stringify(["我的银行卡列表"]) }));
-    ok(res, list[0]?.content || "");
+    const vault = await readVaultCards();
+    ok(res, vault.cards.map((card) => cardToPublic(card)));
     return;
   }
   if (route === "file-manager/list" && req.method === "GET") {
@@ -1004,14 +1523,17 @@ function isApiPath(pathname) {
     "bill",
     "diary",
     "diary-category",
+    "finance",
     "file-manager",
     "image-qiniu",
     "invitation",
+    "migration",
     "setup",
     "statistic",
     "system-config",
     "user",
     "user-config",
+    "vault",
   ].includes(firstSegment);
 }
 

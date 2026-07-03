@@ -18,6 +18,16 @@ export interface EntityDiaryFromServer{
     uid: number, // 3,
     is_public: 0|1, // 0,
     is_markdown: 0|1 // 0
+    mood?: string,
+    tags?: string[],
+    locationName?: string,
+    longitude?: string,
+    latitude?: string,
+    weatherText?: string,
+    weatherCode?: string,
+    humidity?: string,
+    windText?: string,
+    contextUpdatedAt?: string,
 
     // 账单时，列表会返回 billData
     billData?: Array<EntityBillDay>,
@@ -89,6 +99,16 @@ export interface DiarySubmitEntity{
     is_public: 1 | 0,
     is_markdown: 1 | 0,
     date: string,
+    mood?: string,
+    tags?: string[],
+    locationName?: string,
+    longitude?: string,
+    latitude?: string,
+    weatherText?: string,
+    weatherCode?: string,
+    humidity?: string,
+    windText?: string,
+    contextUpdatedAt?: string,
 }
 
 // 日记添加的 response
