@@ -1,109 +1,135 @@
 <template>
-    <div class="body-login-bg setup-page">
-        <div class="body-login setup-body">
-            <div class="logo-wrapper">
-                <div class="logo">
+    <div class="setup-page">
+        <main class="setup-shell">
+            <header class="setup-header">
+                <div class="setup-logo">
                     <img :src="SVG_ICONS.logo_icons.logo_init" alt="Diary Logo Init">
                 </div>
-            </div>
-            <div class="setup-title">安装引导</div>
-            <div class="setup-subtitle">在前端完成数据库配置与初始化，项目配置改到系统配置页维护。</div>
+                <div>
+                    <h1>安装引导</h1>
+                    <p>完成数据库配置与初始化，后续项目配置请到系统配置页维护。</p>
+                </div>
+            </header>
 
-            <div v-if="isLoadingStatus" class="setup-card">
-                <div class="setup-card-title">正在读取当前状态...</div>
-            </div>
+            <NCard v-if="isLoadingStatus" class="setup-panel" :bordered="false">
+                <NSkeleton text :repeat="3"/>
+            </NCard>
 
             <template v-else>
-                <div class="setup-card">
-                    <div class="setup-card-title">当前状态</div>
+                <NCard class="setup-panel" :bordered="false">
+                    <template #header>
+                        <div class="setup-panel-title">
+                            <Database :size="18"/>
+                            当前状态
+                        </div>
+                    </template>
                     <div class="status-row">
-                        <span :class="['status-pill', status.isInitialized ? 'is-done' : 'is-pending']">
+                        <NTag :type="status.isInitialized ? 'success' : 'warning'" :bordered="false">
                             {{ status.isInitialized ? '已初始化' : '未初始化' }}
-                        </span>
-                        <span class="status-text">初始化后会生成锁文件 <span class="command-code">{{ status.lockFileName }}</span>。</span>
+                        </NTag>
+                        <span>初始化后会生成锁文件 <code>{{ status.lockFileName }}</code>。</span>
                     </div>
-                    <div class="desc mt-1">
-                        如果后续需要重新执行初始化，请先删除后台根目录中的 <span class="command-code">{{ status.lockFileName }}</span> 文件。
+                    <p class="setup-note">
+                        如果后续需要重新执行初始化，请先删除后台根目录中的 <code>{{ status.lockFileName }}</code> 文件。
+                    </p>
+                </NCard>
+
+                <NCard class="setup-panel" v-if="!status.isInitialized" :bordered="false">
+                    <template #header>
+                        <div class="setup-panel-title">
+                            <Settings2 :size="18"/>
+                            数据库配置
+                        </div>
+                    </template>
+                    <NForm label-placement="top" :show-require-mark="false" @submit.prevent="saveConfig">
+                        <NGrid :cols="2" :x-gap="14" :y-gap="8" responsive="screen">
+                            <NFormItemGi label="主机">
+                                <NInput id="db-host" v-model:value="databaseConfig.host"/>
+                            </NFormItemGi>
+                            <NFormItemGi label="用户名">
+                                <NInput id="db-user" v-model:value="databaseConfig.user"/>
+                            </NFormItemGi>
+                            <NFormItemGi label="密码">
+                                <NInput id="db-password" v-model:value="databaseConfig.password" type="password" show-password-on="click"/>
+                            </NFormItemGi>
+                            <NFormItemGi label="端口">
+                                <NInputNumber id="db-port" v-model:value="databaseConfig.port" :min="1" style="width: 100%"/>
+                            </NFormItemGi>
+                            <NFormItemGi label="时区" :span="2">
+                                <NInput id="db-timezone" v-model:value="databaseConfig.timezone" placeholder="可留空"/>
+                            </NFormItemGi>
+                        </NGrid>
+                        <div class="setup-actions">
+                            <NButton
+                                type="primary"
+                                attr-type="submit"
+                                :loading="isSavingConfig"
+                                :disabled="!isConfigValid"
+                            >
+                                保存配置
+                            </NButton>
+                        </div>
+                    </NForm>
+
+                    <NAlert class="setup-alert" type="info" :bordered="false">
+                        会同步写入：<code>{{ status.configFiles.join('、') }}</code>
+                    </NAlert>
+                    <NAlert v-if="saveMessage" class="setup-alert" type="success" :bordered="false">
+                        {{ saveMessage }}
+                    </NAlert>
+                </NCard>
+
+                <NCard class="setup-panel" v-if="!status.isInitialized" :bordered="false">
+                    <template #header>
+                        <div class="setup-panel-title">
+                            <RefreshCw :size="18"/>
+                            重启说明
+                        </div>
+                    </template>
+                    <div class="restart-list">
+                        <p v-for="tip in status.restartTips" :key="tip">{{ tip }}</p>
                     </div>
-                </div>
+                </NCard>
 
-                <div class="setup-card" v-if="!status.isInitialized">
-                    <div class="setup-card-title">1. 数据库配置</div>
-                    <form @submit.prevent="saveConfig">
-                        <div class="input-group">
-                            <label for="db-host">主机</label>
-                            <input id="db-host" v-model.trim="databaseConfig.host" type="text">
+                <NCard class="setup-panel" :bordered="false">
+                    <template #header>
+                        <div class="setup-panel-title">
+                            <Rocket :size="18"/>
+                            {{ status.isInitialized ? '初始化结果' : '初始化数据库' }}
                         </div>
-                        <div class="input-group">
-                            <label for="db-user">用户名</label>
-                            <input id="db-user" v-model.trim="databaseConfig.user" type="text">
-                        </div>
-                        <div class="input-group">
-                            <label for="db-password">密码</label>
-                            <input id="db-password" v-model="databaseConfig.password" type="password">
-                        </div>
-                        <div class="input-group">
-                            <label for="db-port">端口</label>
-                            <input id="db-port" v-model.number="databaseConfig.port" type="number" min="1">
-                        </div>
-                        <div class="input-group">
-                            <label for="db-timezone">时区</label>
-                            <input id="db-timezone" v-model.trim="databaseConfig.timezone" type="text" placeholder="可留空">
-                        </div>
-
-                        <button
-                            :class="['btn', isConfigValid && !isSavingConfig ? 'btn-active' : 'btn-inactive']"
-                            :disabled="!isConfigValid || isSavingConfig"
-                            type="submit"
-                        >
-                            {{ isSavingConfig ? '保存中...' : '保存配置' }}
-                        </button>
-                    </form>
-
-                    <div class="desc mt-2">
-                        会同步写入：
-                        <p class="command-code">
-                            {{ status.configFiles.join('、') }}
-                        </p>
-                    </div>
-                    <div class="desc" v-if="saveMessage">{{ saveMessage }}</div>
-                </div>
-
-                <div class="setup-card" v-if="!status.isInitialized">
-                    <div class="setup-card-title">2. 重启说明</div>
-                    <div class="description-list">
-                        <div class="desc">
-                            <p v-for="tip in status.restartTips" :key="tip">{{ tip }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="setup-card">
-                    <div class="setup-card-title">{{ status.isInitialized ? '初始化结果' : '3. 初始化数据库' }}</div>
-                    <div class="desc" v-if="!status.isInitialized">
+                    </template>
+                    <NAlert v-if="!status.isInitialized" type="warning" :bordered="false">
                         <p>
-                            初始化会清空原有 <span class="command-code">diary</span> 数据库内容
+                            初始化会清空原有 <code>diary</code> 数据库内容。
                         </p>
                         <p>
-                            初始化会创建 <span class="command-code">diary</span> 数据库，并写入基础表结构。首次注册的用户会自动成为管理员。
+                            初始化会创建 <code>diary</code> 数据库，并写入基础表结构。首次注册的用户会自动成为管理员。
                         </p>
-                    </div>
-                    <div :class="['desc', 'command-code', !isInitSuccess ? 'warning' : '']" v-if="initMessage">{{ initMessage }}</div>
-                    <div class="btn-list mt-4" v-if="!status.isInitialized">
-                        <button
-                            :class="['btn', !isInitializing ? 'btn-active' : 'btn-inactive']"
+                    </NAlert>
+                    <NAlert
+                        v-if="initMessage"
+                        class="setup-alert"
+                        :type="isInitSuccess ? 'success' : 'error'"
+                        :bordered="false"
+                    >
+                        {{ initMessage }}
+                    </NAlert>
+                    <div class="setup-actions" v-if="!status.isInitialized">
+                        <NButton
+                            type="primary"
+                            :loading="isInitializing"
                             :disabled="isInitializing"
                             @click="runInit"
                         >
-                            {{ isInitializing ? '初始化中...' : '开始初始化' }}
-                        </button>
+                            开始初始化
+                        </NButton>
                     </div>
-                    <div class="btn-list mt-4" v-else>
-                        <button class="btn btn-active" @click="goToRegister">前往注册</button>
+                    <div class="setup-actions" v-else>
+                        <NButton type="primary" @click="goToRegister">前往注册</NButton>
                     </div>
-                </div>
+                </NCard>
             </template>
-        </div>
+        </main>
     </div>
 </template>
 
@@ -116,6 +142,19 @@ import SVG_ICONS from "@/assets/icons/SVG_ICONS.ts"
 import {useProjectStore} from "@/pinia/useProjectStore"
 import {useStatisticStore} from "@/pinia/useStatisticStore"
 import {deleteAuthorization, getAuthorization, popMessage} from "@/utility"
+import {
+    NAlert,
+    NButton,
+    NCard,
+    NForm,
+    NFormItemGi,
+    NGrid,
+    NInput,
+    NInputNumber,
+    NSkeleton,
+    NTag
+} from "naive-ui"
+import {Database, RefreshCw, Rocket, Settings2} from "@lucide/vue"
 
 const projectStore = useProjectStore()
 const statisticStore = useStatisticStore()

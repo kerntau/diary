@@ -1,123 +1,138 @@
-@use "../../scss/plugin" as *;
-
-.setup-page{
-  min-height: 100vh;
-  padding: 30px 0;
-  background-color: $bg-setup;
+.setup-page {
+  min-height: 100dvh;
+  padding: 24px;
+  background: var(--diary-bg);
+  color: var(--diary-ink);
 }
 
-.setup-body{
-  flex-grow: 1;
-  width: min(680px, calc(100vw - 24px));
-  max-width: 680px;
-  padding: 28px 24px 24px;
+.setup-shell {
+  width: min(100%, 820px);
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
 }
 
-.setup-title{
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 6px;
-  color: $text-menu-first
-}
+.setup-header {
+  padding: 22px;
+  border: 1px solid var(--diary-border);
+  border-radius: var(--diary-radius);
+  background: var(--diary-surface);
+  box-shadow: var(--diary-hairline-shadow);
+  display: flex;
+  align-items: center;
+  gap: 16px;
 
-.setup-subtitle{
-  font-size: 13px;
-  color: $text-menu-second;
-  margin-bottom: 20px;
-}
+  h1 {
+    margin: 0;
+    color: var(--diary-ink);
+    font-size: 26px;
+    line-height: 1.2;
+    font-weight: 780;
+    letter-spacing: 0;
+  }
 
-.setup-card{
-  border: 1px solid $color-border-setup;
-  border-radius: 10px;
-  padding: 16px;
-  margin-bottom: 14px;
-  background: $bg-setup-card;
-  .setup-card-title{
-    font-size: 16px;
-    margin-bottom: 12px;
-    color: $text-menu-first;
-    h3{
-      font-weight: bold;
-    }
-    .desc{
-    }
+  p {
+    margin: 6px 0 0;
+    color: var(--diary-muted);
+    font-size: 14px;
+    line-height: 1.6;
   }
 }
 
+.setup-logo {
+  width: 72px;
+  height: 72px;
+  flex: 0 0 auto;
+  border: 1px solid var(--diary-border);
+  border-radius: var(--diary-radius);
+  background: var(--diary-surface-muted);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
 
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
 
-.status-row{
+.setup-panel {
+  border: 1px solid var(--diary-border);
+  border-radius: var(--diary-radius);
+  background: var(--diary-surface);
+  box-shadow: var(--diary-hairline-shadow);
+}
+
+.setup-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--diary-ink);
+  font-size: 16px;
+  font-weight: 760;
+}
+
+.status-row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
+  color: var(--diary-muted);
+  font-size: 14px;
 }
 
-.status-pill{
-  font-size: 12px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  &.is-done{
-    background: #2f9e44;
-    color: #fff;
-  }
-
-  &.is-pending{
-    background: $color-main;
-    color: black;
-  }
-}
-
-
-
-.status-text{
+.setup-note,
+.restart-list p {
+  margin: 10px 0 0;
+  color: var(--diary-muted);
   font-size: 13px;
-  color: $text-menu-second;
+  line-height: 1.65;
 }
 
-
-.description-list{
-  display: flex;
-  flex-flow: column nowrap;
+.restart-list {
+  display: grid;
   gap: 8px;
 }
 
-.desc{
-  font-size: 12px;
-  color: $text-menu-second;
-  line-height: 1.5;
-  a{
-    color: $color-main;
-    &:hover{
-      text-decoration: underline;
-    }
-  }
+.setup-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
-.btn{
-  border: none;
+.setup-alert {
+  margin-top: 14px;
 }
 
-.command-code{
-  color: $green;
-  &.warning{
-    color: $red
-  }
+code {
+  color: var(--diary-accent);
+  font-family: "JetBrainsMonoDiary", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.92em;
 }
 
-@media (prefers-color-scheme: dark) {
-  .setup-card{
-    background-color: $dark-bg-setup-card;
-    border-color: $dark-border-setup;
+@media (max-width: 640px) {
+  .setup-page {
+    padding: 12px;
   }
 
-  .toggle-row{
-    border-color: $dark-border-setup;
+  .setup-header {
+    align-items: flex-start;
+    padding: 18px;
   }
 
-  .toggle-row-text{
-    label{
-      color: $dark-text-title;
-    }
+  .setup-logo {
+    width: 56px;
+    height: 56px;
+  }
+
+  .setup-header h1 {
+    font-size: 22px;
+  }
+
+  .setup-actions {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 }
