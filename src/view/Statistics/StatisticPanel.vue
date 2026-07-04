@@ -1,64 +1,50 @@
 <template>
-    <div class="statistic-panel-container">
-        <h3 v-if="title">{{title}}</h3>
+    <section class="statistic-panel-container">
+        <header v-if="title" class="statistic-panel-header">
+            <h3>{{ title }}</h3>
+        </header>
         <div class="statistic-panel">
             <slot/>
         </div>
-    </div>
-
+    </section>
 </template>
 
-<script>
-export default {
-    name: "StatisticPanel",
-    props: {
-        title: ''
-    }
-}
+<script lang="ts" setup>
+defineProps<{
+    title?: string
+}>()
 </script>
 
 <style scoped lang="scss">
-@use "../../scss/plugin" as *;
-.statistic-panel-container{
-    padding: 10px;
-}
-.statistic-panel{
-    flex-shrink: 0;
-    background-color: $bg-light;
-    border-radius: $radius-pc;
-    padding: 30px;
-}
-h3{
-    margin-left: 10px;
-    color: $text-menu-second;
-    font-size: $fz-title;
-    line-height: 1;
-    padding-bottom: 10px;
+.statistic-panel-container {
+    display: grid;
+    gap: 8px;
 }
 
-// mobile
-@media (max-width: $grid-separate-width-sm) {
-    .statistic-panel-container{
-        padding: 20px 5px;
-    }
-    .statistic-panel{
-        padding: 15px;
+.statistic-panel-header {
+    padding: 0 2px;
+
+    h3 {
+        margin: 0;
+        color: var(--diary-ink);
+        font-size: 16px;
+        font-weight: 750;
+        line-height: 1.3;
     }
 }
 
+.statistic-panel {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid var(--diary-border);
+    border-radius: var(--diary-radius);
+    background: var(--diary-surface);
+    box-shadow: var(--diary-hairline-shadow);
+}
 
-@media (prefers-color-scheme: dark) {
-    .statistic-panel-container{
-        h3{
-            color: $dark-text-title    !important;
-        }
-    }
+@media (max-width: 640px) {
     .statistic-panel {
-        background-color: $dark-bg !important;
+        padding: 12px;
     }
 }
-
-
-
 </style>
-

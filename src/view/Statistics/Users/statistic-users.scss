@@ -1,123 +1,74 @@
-@use "sass:color" as color;
-@use "../../../scss/plugin" as *;
-
-.user-list{
-  display: flex;
-  justify-content: flex-start;
-  flex-flow: row nowrap;
-  flex-grow: 1;
+.statistic-user {
   width: 100%;
-  overflow-x: auto;
-  .section-title{
-    font-size: 14px;
-  }
-  table{
-    max-width: 100%;
-  }
-  tr{
-    &:nth-child(even){
-      td{
-        background-color: $bg-light-td;
-      }
-    }
-    &:hover{
-      td{
-        color: white !important;
-        background-color: $bg-light-td-hover;
-      }
-    }
-  }
-  th, td{
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: right;
-    font-size: $fz-small;
-    padding: 3px 5px;
-    line-height: 1;
-    &.highlight{
-      color: $color-main!important;
-    }
-  }
-  th{
-    font-weight: bold;
-    color: $text-content;
-  }
-  td{
-    color: $text-content;
-    &.no{
-
-    }
-    &.id{
-      width: 50px;
-    }
-    &.name{
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
-  }
 }
 
+.user-list {
+  display: grid;
+  gap: 16px;
+}
 
-@for $item from 0 through 7 {
-  .date-level-#{$item}{
-    color: color.change($red, $hue: -20deg * $item) !important;
+.user-list table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  font-size: 12px;
+}
+
+.user-list th,
+.user-list td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--diary-border);
+  color: var(--diary-ink);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.user-list th {
+  color: var(--diary-muted);
+  font-weight: 700;
+  background: var(--diary-surface-muted);
+}
+
+.user-list td {
+  font-variant-numeric: tabular-nums;
+}
+
+.user-list tbody tr:hover td {
+  background: rgba(0, 122, 255, 0.08);
+}
+
+.user-list .name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.date-level-0,
+.date-level-1,
+.date-level-2 {
+  color: var(--diary-success) !important;
+}
+
+.date-level-3,
+.date-level-4,
+.date-level-5,
+.date-level-6,
+.date-level-7 {
+  color: var(--diary-warning) !important;
+}
+
+.date-level-dead {
+  color: var(--diary-muted) !important;
+}
+
+@media (max-width: 720px) {
+  .user-list {
+    overflow-x: auto;
+  }
+
+  .user-list th,
+  .user-list td {
+    padding: 7px 8px;
   }
 }
-
-.date-level-dead{
-  color: $text-title;
-}
-
-@media (min-width: $grid-separate-width-big) and (max-width: $grid-separate-width-max) {
-
-}
-
-
-// ON MOBILE
-@media (max-width: $grid-separate-width-sm) {
-  .statistic-user{
-    flex-flow: column nowrap;
-    &>*{
-      width: 100%;
-    }
-  }
-  .user-list{
-    flex-flow: column nowrap;
-    table{
-      width: 100%;
-    }
-    th, td{
-      font-size: 12px;
-      padding: 2px;
-    }
-  }
-}
-
-// DARK
-@media (prefers-color-scheme: dark) {
-  .user-list{
-    td{
-      color: $dark-text;
-    }
-    tr {
-      &:hover{
-        td{
-          background-color: $dark-bg-td-active !important;
-        }
-      }
-      td{
-        background-color: $dark-bg-td;
-      }
-      &:nth-child(even) {
-        td {
-          background-color: $dark-bg-td-even;
-        }
-      }
-    }
-    th{
-      color: $dark-text !important;
-    }
-  }
-}
-

@@ -1,30 +1,27 @@
 <template>
-    <div class="statistic-container" :style="`height: ${projectStore.insets.windowsHeight}px`">
+    <div class="statistic-container" :style="`min-height: ${projectStore.insets.windowsHeight}px`">
 
-        <!-- Header -->
-        <PageHeader title="统计数据">
+        <PageHeader title="写作统计" subtitle="日记、天气和使用情况">
             <div class="main-statistic">
                 <div class="main-statistic-item">
-                    <div class="label">共享</div> <div class="number value">{{ statisticStore.statisticsCategory.shared}}</div>
+                    <div class="label">共享</div>
+                    <div class="number value">{{ statisticStore.statisticsCategory.shared}}</div>
                 </div>
                 <div class="main-statistic-item">
-                    <div class="label">总计</div> <div class="number value">{{ statisticStore.statisticsCategory.amount }}</div>
+                    <div class="label">总计</div>
+                    <div class="number value">{{ statisticStore.statisticsCategory.amount }}</div>
                 </div>
             </div>
         </PageHeader>
 
-        <div v-if="isLoading" class="pt-8 pb-8">
+        <div v-if="isLoading" class="statistic-loading">
             <Loading :loading="isLoading"/>
         </div>
 
-        <!-- CONTENT -->
         <MenuPanelContainer v-else>
-            <div class="statistic-user">
-                <StatisticUsers/>
-            </div>
-
-            <div class="statistic-diary">
+            <div class="statistic-content">
                 <StatisticCharts/>
+                <StatisticUsers/>
             </div>
         </MenuPanelContainer>
 
@@ -86,29 +83,36 @@ function getStatistic() {
 </script>
 
 <style lang="scss" scoped>
-@use "../../scss/plugin" as *;
-.back-btn{
-    background-color: $bg-menu;
-}
-
 .main-statistic{
     display: flex;
-    flex-flow: row nowrap;
-    align-items: flex-end;
+    align-items: center;
+    gap: 8px;
     .main-statistic-item{
-        margin-right: 20px;
-        flex-flow: row nowrap;
         display: flex;
         align-items: center;
-        justify-content: flex-start;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: var(--diary-radius-sm);
+        background: var(--diary-surface-muted);
         .label{
-            font-size: $fz-title;
-            margin-right: 10px;
+            font-size: 12px;
+            color: var(--diary-muted);
         }
         .value{
-            font-size: $fz-title;
+            font-size: 14px;
+            font-weight: 750;
+            color: var(--diary-ink);
         }
     }
+}
+
+.statistic-loading {
+    padding: 32px 0;
+}
+
+.statistic-content {
+    display: grid;
+    gap: 16px;
 }
 
 </style>
