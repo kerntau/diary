@@ -3,7 +3,11 @@
         <ul class="menu-category-list">
             <li class="menu-category-item" v-for="(item, index) in useStatisticStore().categoryAll" :key="index"
                 :style="categoryMenuItemStyle(item)"
+                role="button"
+                tabindex="0"
                 @click="toggleCategory(item)"
+                @keydown.enter.prevent="toggleCategory(item)"
+                @keydown.space.prevent="toggleCategory(item)"
             >
                 <div>{{ item.name }}<span class="count">{{ useStatisticStore().statisticsCategory[item.name_en] }}</span></div>
             </li>
@@ -11,13 +15,17 @@
 
         <div class="menu-category-list category-operations-container">
             <div :class="['menu-category-item', 'menu-category-shared', {active: projectStore.isFilterShared}]"
-                 @click="toggleFilterShared">共享日记</div>
+                 role="button"
+                 tabindex="0"
+                 @click="toggleFilterShared"
+                 @keydown.enter.prevent="toggleFilterShared"
+                 @keydown.space.prevent="toggleFilterShared">共享日记</div>
 
         </div>
 
         <div class="menu-category-list category-operations-container">
-            <div @click="selectCategoryAll" class="menu-btn">全选</div>
-            <div @click="reverseCategorySelect" class="menu-btn">反选</div>
+            <NButton secondary strong @click="selectCategoryAll">全选</NButton>
+            <NButton secondary strong @click="reverseCategorySelect">反选</NButton>
         </div>
     </MenuPanelContainer>
 </template>
@@ -30,6 +38,7 @@ import {useProjectStore} from "@/pinia/useProjectStore.ts";
 import {CategoryEntity} from "@/entity/Category.ts";
 import MenuPanelContainer from "@/framework/MenuPanelContainer.vue";
 import {useStatisticStore} from "@/pinia/useStatisticStore.ts";
+import {NButton} from "naive-ui";
 const projectStore = useProjectStore()
 
 const filterShared = ref(false) // 是否筛选已共享的日记

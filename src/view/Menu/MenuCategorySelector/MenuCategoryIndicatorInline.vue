@@ -26,10 +26,6 @@ function indicatorItemStyle(category: CategoryEntity): string{
 </script>
 
 <style lang="scss" scoped>
-@use "sass:math";
-@use "../../../scss/plugin" as *;
-
-$height-indicator: 2px;
 .indicator-list-inline{
     padding: 0 10px;
     width: 100%;
@@ -38,14 +34,17 @@ $height-indicator: 2px;
     left: 0;
     right: 0;
     cursor: pointer;
-    @extend .btn-like;
     display: flex;
     justify-content: stretch;
     flex-flow: row nowrap;
+    transition: opacity var(--diary-transition);
+    &:hover{
+        opacity: 0.82;
+    }
     .indicator-list-item{
         flex-shrink: 0;
         flex-grow: 1;
-        height: $height-indicator;
+        height: 2px;
         &:nth-child(2n){
             margin-bottom: 0;
         }

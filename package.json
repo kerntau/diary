@@ -30,7 +30,6 @@
     "clipboard": "^2.0.11",
     "core-js": "^3.26.1",
     "echarts": "^5.4.3",
-    "floating-vue": "^2.0.0-beta.20",
     "highlight.js": "^11.11.1",
     "js-base64": "^3.7.5",
     "js-calendar-converter": "^0.0.6",

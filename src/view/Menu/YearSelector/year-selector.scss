@@ -1,86 +1,84 @@
-@use "sass:math";
-@use "sass:color" as color;
-@use "../../../scss/plugin" as *;
-
 .year-container{
   overflow-y: auto;
 }
 .year{
   padding: 20px 0;
-  border-bottom: 1px dashed $color-border-menu;
+  border-bottom: 1px solid var(--diary-border);
 }
 .year-header{
   padding-bottom: 20px;
-  color: white;
-  font-size: 1.8rem;
-  font-weight: bold;
-  text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+  color: var(--diary-ink);
+  font-size: 24px;
+  font-weight: 750;
+  letter-spacing: 0;
   .count{
-    margin: 0 10px;
-    font-size: 1rem;
-    font-weight: 300;
+    margin-left: 8px;
+    color: var(--diary-muted);
+    font-size: 13px;
+    font-weight: 650;
   }
 }
 .year-list{
-  display: flex;
-  justify-content: flex-start;
-  flex-flow: row wrap;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
 }
 .year-month-item{
   display: flex;
   justify-content: center;
   align-items: center;
+  min-height: 58px;
   cursor: pointer;
-  @extend .unselectable;
-  border-radius: $radius-mobile;
-  margin-bottom: 10px;
-  width: 22%;
-  margin-right: math.div(100% - 22 * 4, 3);
-  background-color: rgba(white, 0.3);
+  user-select: none;
+  border: 1px solid var(--diary-border);
+  border-radius: var(--diary-radius);
+  background: var(--diary-surface);
   padding: 10px 20px;
   position: relative;
-  &:nth-child(4n){
-    margin-right: 0;
-  }
+  transition:
+    background-color var(--diary-transition),
+    border-color var(--diary-transition),
+    box-shadow var(--diary-transition),
+    transform var(--diary-transition);
   .month{
-    color: color.adjust($bg-menu, $lightness: -10%);
+    color: var(--diary-ink);
     text-align: center;
-    font-size: 1.2rem;
-    font-weight: bold;
+    font-size: 18px;
+    font-weight: 750;
   }
   .month-count{
-    color: $bg-menu;
+    color: var(--diary-muted);
     top: 5px;
     right: 5px;
     position: absolute;
     font-size: 10px;
   }
   &:hover{
+    border-color: var(--diary-border-strong);
+    background: var(--diary-bg-elevated);
+    transform: translateY(-1px);
     .month{
-      color: white;
+      color: var(--diary-accent);
     }
     .month-count{
-      color: white;
+      color: var(--diary-accent);
     }
   }
   &.active{
-    background-color: $color-main;
-    background: linear-gradient(to bottom right, $color-main, color.adjust($color-main, $lightness: -5%));
-    transition: all 0;
-    text-shadow: 1px 0 2px color.adjust(black, $alpha: -0.6);
+    border-color: var(--diary-accent);
+    background: rgba(0, 122, 255, 0.1);
+    box-shadow: 0 0 0 3px var(--diary-focus);
     .month{
-      color: white;
-      transition: all 0;
+      color: var(--diary-accent);
     }
     .month-count {
-      color: white;
-      transition: all 0;
+      color: var(--diary-accent);
     }
   }
 }
 
 // >  IPAD
-@media (min-width: $grid-separate-width-big){
+@media (min-width: 1366px){
   .year-container{
     padding: 0;
   }
@@ -88,7 +86,7 @@
 }
 
 // Mobile
-@media (max-width: $grid-separate-width-sm){
+@media (max-width: 768px){
   .year-container{
     padding: 10px;
   }
@@ -102,13 +100,13 @@
 .year-tip{
   padding: 30px;
   text-align: center;
-  color: $color-main;
+  color: var(--diary-accent);
 }
 
 
 // DARK
 @media (prefers-color-scheme: dark) {
   .year{
-    border-bottom-color: $dark-menu-border;
+    border-bottom-color: var(--diary-border);
   }
 }

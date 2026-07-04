@@ -26,27 +26,26 @@ function indicatorItemStyle(category: CategoryEntity): string{
 </script>
 
 <style lang="scss" scoped>
-@use "sass:math";
-@use "../../../scss/plugin" as *;
-
-$height-indicator: 8px;
 .indicator-list{
-    width: $height-indicator * (8+3);
+    width: 88px;
     cursor: pointer;
-    @extend .btn-like;
-    height: $height-navbar;
-    padding: math.div($height-navbar - $height-indicator * 2 - 3, 2) 0;
+    height: 45px;
+    padding: 13px 0;
     display: flex;
     align-items: flex-start;
     justify-content: flex-start;
     flex-flow: row wrap;
+    transition: opacity var(--diary-transition);
+    &:hover{
+        opacity: 0.82;
+    }
     .indicator-list-item{
         margin-right: 3px;
         margin-bottom: 3px;
         flex-shrink: 0;
-        border: 1px dotted white;
-        height: $height-indicator;
-        width: $height-indicator;
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        height: 8px;
+        width: 8px;
         border-radius: 2px;
         &:nth-child(2n){
             margin-bottom: 0;

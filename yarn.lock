@@ -824,25 +824,6 @@
   resolved "https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.25.12.tgz"
   integrity sha512-alJC0uCZpTFrSL0CCDjcgleBXPnCrEAhTBILpeAp7M/OFgoqtAetfBzX0xM00MUsVVPpVjlPuMbREqnZCXaTnA==
 
-"@floating-ui/core@^1.1.0":
-  version "1.7.5"
-  resolved "https://registry.npmjs.org/@floating-ui/core/-/core-1.7.5.tgz"
-  integrity sha512-1Ih4WTWyw0+lKyFMcBHGbb5U5FtuHJuujoyyr5zTaWS5EYMeT6Jb2AuDeftsCsEuchO+mM2ij5+q9crhydzLhQ==
-  dependencies:
-    "@floating-ui/utils" "^0.2.11"
-
-"@floating-ui/dom@~1.1.1":
-  version "1.1.1"
-  resolved "https://registry.npmjs.org/@floating-ui/dom/-/dom-1.1.1.tgz"
-  integrity sha512-TpIO93+DIujg3g7SykEAGZMDtbJRrmnYRCNYSjJlvIbGhBjRSNTLVbNeDQBrzy9qDgUbiWdc7KA0uZHZ2tJmiw==
-  dependencies:
-    "@floating-ui/core" "^1.1.0"
-
-"@floating-ui/utils@^0.2.11":
-  version "0.2.11"
-  resolved "https://registry.npmjs.org/@floating-ui/utils/-/utils-0.2.11.tgz"
-  integrity sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==
-
 "@isaacs/cliui@^9.0.0":
   version "9.0.0"
   resolved "https://registry.npmjs.org/@isaacs/cliui/-/cliui-9.0.0.tgz"
@@ -2091,14 +2072,6 @@ filelist@^1.0.4:
   integrity sha512-5giy2PkLYY1cP39p17Ech+2xlpTRL9HLspOfEgm0L6CwBXBTgsK5ou0JtzYuepxkaQ/tvhCFIJ5uXo0OrM2DxA==
   dependencies:
     minimatch "^5.0.1"
-
-floating-vue@^2.0.0-beta.20:
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/floating-vue/-/floating-vue-2.0.0.tgz"
-  integrity sha512-YSffLYOjoaaPPBZc7VQR2qMCQ7xeXuh7i8a2u8WOdSmkjTtKtZpj2aaJnLtZRHmehrMHyCgtSxLu8jFNNX2sVw==
-  dependencies:
-    "@floating-ui/dom" "~1.1.1"
-    vue-resize "^2.0.0-alpha.1"
 
 follow-redirects@^1.15.6:
   version "1.15.11"
@@ -3722,11 +3695,6 @@ vue-demi@^0.14.10:
   version "0.14.10"
   resolved "https://registry.npmjs.org/vue-demi/-/vue-demi-0.14.10.tgz"
   integrity sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==
-
-vue-resize@^2.0.0-alpha.1:
-  version "2.0.0-alpha.1"
-  resolved "https://registry.npmjs.org/vue-resize/-/vue-resize-2.0.0-alpha.1.tgz"
-  integrity sha512-7+iqOueLU7uc9NrMfrzbG8hwMqchfVfSzpVlCMeJQe4pyibqyoifDNbKTZvwxZKDvGkB+PdFeKvnGZMoEb8esg==
 
 vue-router@^4.2.5:
   version "4.6.4"
