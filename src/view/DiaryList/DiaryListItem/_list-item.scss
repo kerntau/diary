@@ -1,4 +1,3 @@
-@use "sass:color" as color;
 @use "../../../scss/plugin" as *;
 
 .diary-list-item{
@@ -31,11 +30,6 @@
     font-size: $fz-list-content;
     font-weight: bold;
     color: $text-date;
-    &.weekday-short{
-      font-weight: normal;
-      font-size: $fz-small;
-      color: $text-label;
-    }
   }
   .detail{
     position: relative;
@@ -52,12 +46,6 @@
       display: block;
       font-size: $fz-list-content;
       color: $text-title;
-      .weekday-short{
-        margin-left: 4px;
-        font-weight: normal;
-        font-size: $fz-small;
-        color: $text-label;
-      }
     }
     .icon{
       flex-shrink: 0;
@@ -65,18 +53,6 @@
       height: $height-list;
       width: $height-list - 4 * 2;
       display: block;
-    }
-    .bill-amount{
-      padding-right: 10px;
-      font-size: $fz-small;
-      color: $text-label;
-      line-height: $height-list;
-      flex-grow: 1;
-      text-align: right;
-      &.bill-in{
-        //font-weight: bold;
-        color: color.adjust(color.adjust($magenta, $saturation: -20%), $lightness: 0%);
-      }
     }
     &:after{
       bottom: 0;
@@ -94,17 +70,11 @@
     .title, .date{
       color: white;
       text-shadow: 1px 1px 0 rgba(0,0,0,0.1);
-      .weekday-short{
-        color: rgba(255, 255, 255, 0.85);
-      }
     }
     .detail{
       &:after{
         content: none;
       }
-    }
-    .bill-amount{
-      color: white!important;
     }
   }
 }
@@ -140,14 +110,6 @@
     .detail{
       .title{
         color: $dark-text-title;
-        .weekday-short{
-          color: $dark-text;
-        }
-      }
-      .bill-amount{
-        &.bill-in{
-          color: color.adjust(color.adjust($magenta, $saturation: -10%), $lightness: 20%);
-        }
       }
       &:after{
         border-bottom-color: $dark-border;
@@ -158,9 +120,6 @@
       .title, .date{
         color: white;
         text-shadow: 1px 1px 0 rgba(0,0,0,0.1);
-        .weekday-short{
-          color: rgba(255, 255, 255, 0.85);
-        }
       }
       .detail{
         &:after{

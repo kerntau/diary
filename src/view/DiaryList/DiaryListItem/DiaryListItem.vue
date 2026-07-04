@@ -11,20 +11,10 @@
         <div class="detail">
             <p class="title" v-if="projectStore.isHideContent">
                 {{ diary.title.replace(/[^，。 \n]/g, '*') }}
-                <span v-if="isBillWeekend" class="weekday-short">{{ diary.weekday }}</span>
             </p>
             <p class="title" v-else>
                 {{ diary.title }}
-                <span v-if="isBillWeekend" class="weekday-short">{{ diary.weekday }}</span>
             </p>
-            <template v-if="diary.hasOwnProperty('billData')">
-                <div v-if="projectStore.isHideContent" :class="['bill-amount', {'bill-in': diary.billData.sum > 0}]">
-                    {{diary.billData.sum.toFixed(projectStore.moneyAccuracy).replace(/[^，。 \n]/g, '*')}}
-                </div>
-                <div v-else :class="['bill-amount', {'bill-in': diary.billData.sum > 0}]">
-                    {{diary.billData.sum>0?'+ ':''}}{{diary.billData.sum.toFixed(projectStore.moneyAccuracy)}}
-                </div>
-            </template>
 
             <img alt="Content"
                  v-if="diary.content"
@@ -57,12 +47,6 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
     (e: 'click'): void
 }>()
-
-const isBillWeekend = computed(() => {
-    if (!props.diary.billData) return false
-    const day = new Date(props.diary.date).getDay()
-    return day === 0 || day === 6
-})
 
 const weatherIcon = computed(() => {
     if (props.isActive) {

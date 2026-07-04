@@ -1,5 +1,4 @@
 import {DateUtilityObject} from "@/utility";
-import { EntityBillDay } from "../Bill/Bill";
 
 
 // DIARY ENTITY
@@ -29,8 +28,6 @@ export interface EntityDiaryFromServer{
     windText?: string,
     contextUpdatedAt?: string,
 
-    // 账单时，列表会返回 billData
-    billData?: Array<EntityBillDay>,
 }
 
 export interface EntityDiaryFromServerLocal extends EntityDiaryFromServer{
@@ -51,7 +48,7 @@ export interface EntityDiaryFromServerLocal extends EntityDiaryFromServer{
 
 
 
-export interface EntityDiaryForm extends Omit<EntityDiaryFromServer, 'date_create' | 'date_modify' | 'billData' | 'date' | 'is_public' | 'is_markdown'>{
+export interface EntityDiaryForm extends Omit<EntityDiaryFromServer, 'date_create' | 'date_modify' | 'date' | 'is_public' | 'is_markdown'>{
     is_public: boolean,
     is_markdown: boolean,
     date: Date|string, // 本页面新建时，保留之前日记的时间，因为可能一次性补全很多之前的日记
