@@ -51,11 +51,6 @@
                     <ToDo :readonly="false" :diary="diary" :hasHideAllCompletedTodoItems="hasHideAllCompletedTodoItems"/>
                 </div>
 
-                <!-- code 类别 -->
-                <div v-else-if="diary.category === 'code'"
-                    class="markdown code-category-size"
-                    v-html="contentCodeHtml"/>
-
                 <!-- 其他类别 -->
                 <div v-else>
                     <div v-if="isShowExplode">
@@ -137,11 +132,6 @@ onUnmounted(()=>{
 const contentMarkDownHtml = computed(()=>{
     return parseMarkdown(diary.value.content)
 })
-// 内容 html - code 类别内容
-const contentCodeHtml = computed(()=>{
-    return buildDiaryContentHtml(diary.value.content, diary.value.category, projectStore.isHideContent, diary.value.title)
-})
-
 watch(() => route.params.id, (newValue) => {
     if (newValue){
         showDiary(Number(newValue))

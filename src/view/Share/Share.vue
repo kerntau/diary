@@ -49,9 +49,6 @@
                         <ToDo v-if="currentDiary.category === 'todo'" :readonly="true" :diary="currentDiary"/>
                         <div v-else>
                             <div v-if="currentDiary.is_markdown === 1" class="markdown" v-html="contentMarkDownHtml"/>
-                            <div v-else-if="currentDiary.category === 'code'"
-                                 class="markdown code-category-size"
-                                 v-html="currentDiary.contentHtml"/>
                             <div v-else class="content" v-html="currentDiary.contentHtml"/>
                         </div>
                     </div>

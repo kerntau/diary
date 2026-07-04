@@ -1,7 +1,6 @@
 <template>
     <div :class="['article', {active: isActive},]" :style="diaryArticleItemStyle">
         <div
-            :style="diaryItemHeaderStyle"
             @click="emit('click')"
             class="article-header"
         >
@@ -26,9 +25,6 @@
             <div class="markdown" 
                 v-if="props.diary.is_markdown === 1" 
                 v-html="contentMarkDownHtml"/>
-            <div class="markdown code-category-size"
-                v-else-if="props.diary.category === 'code'"
-                v-html="props.diary.contentHtml"/>
             <DiaryListTodo 
                 v-else-if="props.diary.category === 'todo'" 
                 :diary="props.diary"/>
@@ -73,31 +69,17 @@ const isActive = computed(() => {
     return Number(route.params.id) === Number(props.diary.id)
 })
 const suffix = computed(()=> {
-    return isActive.value ? '_white' : ''
-})
-const diaryItemHeaderStyle = computed(()=>{
-    if (isActive.value){
-        return ` background-color: ${statisticStore.getCategoryColor(props.diary.category)}; `
-    } else {
-        return ''
-    }
+    return ''
 })
 const diaryArticleItemStyle = computed(()=>{
-    if (isActive.value){
-        return ` border-color: ${statisticStore.getCategoryColor(props.diary.category)}; `
-    } else {
-        return ''
-    }
+    const color = statisticStore.getCategoryColor(props.diary.category)
+    return `--entry-category-color: ${color}; --entry-category-soft: ${color}1a; --entry-category-border: ${color}55;`
 })
 const contentMarkDownHtml = computed(()=>{
     return parseMarkdown(props.diary.content)
 })
 const diaryItemCategoryTextStyle = computed(()=>{
-    if (isActive.value){
-
-    } else {
-        return ` color:  ${statisticStore.getCategoryColor(props.diary.category)} `
-    }
+    return ''
 })
 
 </script>

@@ -15,9 +15,6 @@
             <div class="title">{{ props.diary.title }}</div>
         </RouterLink>
         <div class="content markdown small" v-if="props.diary.is_markdown === 1" v-html="contentMarkDownHtml"></div>
-        <div class="content markdown small code-category-size"
-             v-else-if="props.diary.category === 'code'"
-             v-html="props.diary.contentHtml"></div>
         <div class="content" v-else v-html="props.diary.contentHtml"></div>
         <div class="meta" :style="backgroundColor">
             <div class="date">{{ props.diary.dateObj?.dateFull}}</div>
