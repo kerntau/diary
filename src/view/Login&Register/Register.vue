@@ -1,59 +1,55 @@
 <template>
-    <div class="body-login-bg" :style="`min-height: ${projectStore.insets.windowsHeight}px`">
+    <div class="account-page" :style="`min-height: ${projectStore.insets.windowsHeight}px`">
         <transition
             enter-active-class="animated-fast fadeIn"
             leave-active-class="animated-fast faceOut"
         >
-            <div class="body-login" v-if="show">
-                <div class="logo-wrapper">
-                    <div class="logo">
+            <section class="account-card" v-if="show" aria-labelledby="register-title">
+                <header class="account-header">
+                    <div class="account-logo">
                         <img :src="SVG_ICONS.logo_icons.logo_register" alt="Diary Logo">
                     </div>
-                    <div class="project-name">注册</div>
+                    <div>
+                        <h1 id="register-title" class="account-title">注册</h1>
+                        <p class="account-subtitle">创建你的私人日记账户</p>
+                    </div>
+                </header>
+                <div class="account-tip" v-if="projectConfig.register_tip">
+                    <RegisterTip :html-content="projectConfig.register_tip"/>
                 </div>
-                <RegisterTip :html-content="projectConfig.register_tip"/>
 
-                <form id="regForm">
-                    <div class="input-group">
-                        <label for="invitation" :class="{red: !invitationVerified}">{{ labelInvitation }}</label>
-                        <input v-model="invitationCode"
-                               type="text"
-                               name="invitation"
-                               :placeholder="isInvitationRequired ? '' : '首个注册用户可留空'"
-                               id="invitation">
-                        <div class="desc mt-1" v-if="!isInvitationRequired">
-                            当前还没有任何用户注册，首个注册用户无需邀请码，并将自动成为管理员。
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label for="nickname" :class="{red: !nicknameVerified}">{{ labelUsername }}</label>
-                        <input v-model="nickname" type="text"
-                               name="nickname" id="nickname">
-                    </div>
-                    <div class="input-group">
-                        <label for="email" :class="{red: !emailVerified}">{{ labelEmail }}</label>
-                        <input v-model.lazy="email"
-                               type="text" name="email" id="email">
-                    </div>
-                    <div class="input-group">
-                        <label for="password1" :class="{red: !password1Verified}">{{ labelPassword1 }}</label>
-                        <input v-model.lazy="password1"
-                               name="password1" type="password" id="password1">
-                    </div>
-                    <div class="input-group">
-                        <label for="password2" :class="{red: !password2Verified}">{{ labelPassword2 }}</label>
-                        <input v-model="password2"
-                               type="password" name="password2" id="password2">
-                    </div>
-                    <button class="btn mt-8" :class="verified ? 'btn-active' : 'btn-inactive'"
-                            type="button"
-                            @click.prevent="regSubmit">注册
-                    </button>
-                </form>
-                <div :class="['footer', {center: !projectConfig.is_show_demo_account}]">
-                    <RouterLink to="/login">登录</RouterLink>
+                <NForm class="account-body" label-placement="top" :show-require-mark="false" @submit.prevent="regSubmit">
+                    <NFormItem
+                        label="邀请码"
+                        :validation-status="invitationVerified ? undefined : 'error'"
+                        :feedback="invitationVerified ? (!isInvitationRequired ? '首个注册用户可留空，并将自动成为管理员。' : undefined) : labelInvitation"
+                    >
+                        <NInput
+                            v-model:value="invitationCode"
+                            input-id="invitation"
+                            :placeholder="isInvitationRequired ? '输入邀请码' : '首个注册用户可留空'"
+                        />
+                    </NFormItem>
+                    <NFormItem label="昵称" :validation-status="nicknameVerified ? undefined : 'error'" :feedback="nicknameVerified ? undefined : labelUsername">
+                        <NInput v-model:value="nickname" input-id="nickname" placeholder="你的日记署名"/>
+                    </NFormItem>
+                    <NFormItem label="邮箱" :validation-status="emailVerified ? undefined : 'error'" :feedback="emailVerified ? undefined : labelEmail">
+                        <NInput v-model:value="email" input-id="email" placeholder="name@example.com"/>
+                    </NFormItem>
+                    <NFormItem label="密码" :validation-status="password1Verified ? undefined : 'error'" :feedback="password1Verified ? undefined : labelPassword1">
+                        <NInput v-model:value="password1" input-id="password1" type="password" show-password-on="click"/>
+                    </NFormItem>
+                    <NFormItem label="确认密码" :validation-status="password2Verified ? undefined : 'error'" :feedback="password2Verified ? undefined : labelPassword2">
+                        <NInput v-model:value="password2" input-id="password2" type="password" show-password-on="click"/>
+                    </NFormItem>
+                </NForm>
+                <footer class="account-actions">
+                    <NButton type="primary" block :disabled="!verified" @click.prevent="regSubmit">注册</NButton>
+                </footer>
+                <div class="account-links">
+                    <RouterLink to="/login">已有账户，去登录</RouterLink>
                 </div>
-            </div>
+            </section>
         </transition>
     </div>
 </template>
@@ -73,6 +69,7 @@ import SVG_ICONS from "@/assets/icons/SVG_ICONS.ts";
 import {popMessage} from "@/utility.ts";
 import {UserRegisterEntity} from "@/entity/User.ts";
 import setupApi from "@/api/setupApi.ts";
+import {NButton, NForm, NFormItem, NInput} from "naive-ui";
 
 const router = useRouter()
 const projectConfig = computed(() => systemConfigStore.config)
@@ -94,7 +91,6 @@ const nicknameVerified=  ref(false)
 const emailVerified=  ref(false)
 const password1Verified=  ref(false)
 const password2Verified=  ref(false)
-const heightBg =  ref(0)
 const isInvitationRequired = ref(true)
 
 
@@ -193,3 +189,7 @@ watch(password2, () => {
     }
 })
 </script>
+
+<style scoped lang="scss">
+@use "account-page" as *;
+</style>

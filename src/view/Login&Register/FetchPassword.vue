@@ -1,21 +1,26 @@
 <template>
-    <div class="body-login-bg" :style="`min-height: ${projectStore.insets.windowsHeight}px`">
+    <div class="account-page" :style="`min-height: ${projectStore.insets.windowsHeight}px`">
         <transition
             enter-active-class="animated-fast fadeIn"
             leave-active-class="animated-fast faceOut"
         >
-            <div class="body-login">
-                <div class="logo-wrapper">
-                    <div class="logo">
+            <section class="account-card" aria-labelledby="fetch-password-title">
+                <header class="account-header">
+                    <div class="account-logo">
                         <img :src="SVG_ICONS.logo_icons.logo_change_password" alt="Diary Logo">
                     </div>
-                    <div class="project-name">找回密码</div>
+                    <div>
+                        <h1 id="fetch-password-title" class="account-title">找回密码</h1>
+                        <p class="account-subtitle">私人部署应用需要管理员协助重置</p>
+                    </div>
+                </header>
+                <div class="account-tip">
+                    <RegisterTip :html-content="fetchPasswordTip"/>
                 </div>
-                <RegisterTip :html-content="fetchPasswordTip"/>
-                <div :class="['footer', 'center']">
+                <div class="account-links">
                     <RouterLink to="/login">登录</RouterLink>
                 </div>
-            </div>
+            </section>
         </transition>
     </div>
 </template>
@@ -36,3 +41,7 @@ const fetchPasswordTip = computed(() => `
         `)
 
 </script>
+
+<style scoped lang="scss">
+@use "account-page" as *;
+</style>
