@@ -18,35 +18,41 @@ defineProps({
 </script>
 
 <style lang="scss">
-@use "../../scss/plugin" as *;
 .register-tip {
     width: 100%;
-    padding: 20px;
-    font-size: $fz-small;
-    border-radius: $radius-pc;
-    background-color: $bg-menu;
-    color: $dark-text-title;
-    line-height: 1.3;
+    padding: 16px;
+    font-size: 13px;
+    border: 1px solid var(--diary-border);
+    border-radius: var(--diary-radius);
+    background: var(--diary-surface-muted);
+    color: var(--diary-ink);
+    line-height: 1.55;
     hr{
         margin: 10px 0;
-        border-bottom: 1px solid $color-border-menu;
+        border: 0;
+        border-bottom: 1px solid var(--diary-border);
     }
 
     h1,h2,h3,h4,h5,h6{
         text-align: center;
-        margin-bottom: 20px;
-        font-size: $fz-title;
+        margin: 0 0 12px;
+        color: var(--diary-ink);
+        font-size: 17px;
+        font-weight: 760;
     }
-    p{}
+    p{
+        margin: 8px 0;
+        color: var(--diary-muted);
+    }
     ol{
         padding: 10px;
         margin-left: 30px;
         li{}
     }
     a{
-        color: $green;
+        color: var(--diary-accent);
         &:hover{
-            color: $color-main;
+            color: var(--diary-accent-pressed);
         }
     }
 }

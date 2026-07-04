@@ -4,10 +4,7 @@
             <div class="menu-section-title">密码</div>
             <div class="menu-section-subtitle"></div>
             <div class="menu-section-content">
-                <div class="btn-list">
-                    <div class="btn btn-active" @click="goToChangePassword">修改密码</div>
-                    <!--                   <div class="btn btn-active" @click="goToChangePassword">找回密码</div>-->
-                </div>
+                <NButton type="primary" block @click="goToChangePassword">修改密码</NButton>
 
                 <div class="desc">忘记密码时，请联系系统管理员重置密码。</div>
             </div>
@@ -70,12 +67,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="btn-list">
-                    <div class="btn btn-active" @click="exportDiary('csv')">csv</div>
-                    <div class="btn btn-active" @click="exportDiary('json')">json</div>
-                    <div class="btn btn-active" @click="exportDiary('text')">txt</div>
-                    <div class="btn btn-active" @click="exportDiary('sql')">sql</div>
-                </div>
+                <NSpace class="export-actions" :size="8" wrap>
+                    <NButton type="primary" secondary :loading="isDownloadingContent" @click="exportDiary('csv')">CSV</NButton>
+                    <NButton type="primary" secondary :loading="isDownloadingContent" @click="exportDiary('json')">JSON</NButton>
+                    <NButton type="primary" secondary :loading="isDownloadingContent" @click="exportDiary('text')">TXT</NButton>
+                    <NButton type="primary" secondary :loading="isDownloadingContent" @click="exportDiary('sql')">SQL</NButton>
+                </NSpace>
             </div>
             <div class="desc" v-if="isDownloadingContent">导出中，请耐心等待，勿进行其它操作...</div>
         </div>
@@ -101,6 +98,7 @@ import {useStatisticStore} from "@/pinia/useStatisticStore";
 import Moment from "moment";
 import {DatePicker} from "v-calendar";
 import ExportCategorySelector from "@/view/Menu/MenuOtherFunction/ExportCategorySelector.vue";
+import {NButton, NSpace} from "naive-ui";
 
 const projectStore = useProjectStore()
 const statisticStore = useStatisticStore()
@@ -318,19 +316,20 @@ function downloadFile(fileName: string, data: any) { // 下载文件
 @use "../../../scss/plugin" as *;
 
 .filter-wrapper{
-    border: 1px solid $color-border-menu;
+    border: 1px solid var(--diary-border);
     padding: 8px 10px;
-    border-radius: 5px;
+    border-radius: var(--diary-radius);
+    background: var(--diary-surface-muted);
 }
 
 .description{
     font-size: 12px;
-    color: #666;
+    color: var(--diary-muted);
     margin-bottom: 10px;
 }
 .description-item{
     font-size: 12px;
-    color: #666;
+    color: var(--diary-muted);
     margin-bottom: 4px;
     display: flex;
     flex-flow: row nowrap;
@@ -341,11 +340,11 @@ function downloadFile(fileName: string, data: any) { // 下载文件
         white-space: nowrap;
         margin-right: 10px;
         font-size: 12px;
-        color: $text-menu-second;
+        color: var(--diary-muted);
     }
     .description-item-content{
         font-size: 12px;
-        color: $text-menu-second;
+        color: var(--diary-muted);
         display: flex;
         flex-flow: row wrap;
     }
@@ -357,12 +356,16 @@ function downloadFile(fileName: string, data: any) { // 下载文件
     cursor: pointer;
 
     .value{
-        color: $text-menu-second;
+        color: var(--diary-muted);
         white-space: nowrap;
         &:hover{
-            color: $color-main;
+            color: var(--diary-accent);
             text-decoration: underline;
         }
     }
+}
+
+.export-actions {
+    margin-top: 12px;
 }
 </style>
