@@ -18,65 +18,53 @@ withDefaults(defineProps<{
 
 <style scoped lang="scss">
 .loading{
-    box-sizing: content-box;
-    height: 30px;
+    box-sizing: border-box;
+    height: 34px;
     padding: 8px 10px;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
     .loading-item{
-        width: 3px;
-        margin-right: 4px;
-        &:last-child{
-            margin-right: 0;
-        }
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: var(--diary-accent);
+        opacity: 0.36;
+        transform: scale(0.86);
+        animation: loading-dot 1s infinite ease-in-out;
     }
     .loading-1{
-        animation: load-frame-1 1.2s infinite linear 0s;
-        background-color: var(--diary-danger);
+        animation-delay: 0s;
     }
     .loading-2{
-        animation: load-frame-2 1.2s infinite linear 0s;
-        background-color: var(--diary-accent);
+        animation-delay: 0.12s;
     }
     .loading-3{
-        animation: load-frame-3 1.2s infinite linear 0s;
-        background-color: var(--diary-success);
-
+        animation-delay: 0.24s;
     }
     .loading-4{
-        animation: load-frame-4 1.2s infinite linear 0s;
-        background-color: var(--diary-warning);
+        animation-delay: 0.36s;
     }
 }
 
-@keyframes load-frame-1 {
-    0% {height: 5px}
-    25% {height: 20px}
-    50% {height: 30px}
-    75% {height: 20px}
-    100% {height: 5px}
+@keyframes loading-dot {
+    0%, 80%, 100% {
+        opacity: 0.32;
+        transform: scale(0.86);
+    }
+    40% {
+        opacity: 1;
+        transform: scale(1.18);
+    }
 }
-@keyframes load-frame-2 {
-    0% {height: 20px}
-    25% {height: 30px}
-    50% {height: 20px}
-    75% {height: 5px}
-    100% {height: 20px}
-}
-@keyframes load-frame-3 {
-    0% {height: 30px}
-    25% {height: 20px}
-    50% {height: 5px}
-    75% {height: 20px}
-    100% {height: 30px}
-}
-@keyframes load-frame-4 {
-    0% {height: 20px}
-    25% {height: 5px}
-    50% {height: 20px}
-    75% {height: 30px}
-    100% {height: 20px}
+
+@media (prefers-reduced-motion: reduce) {
+    .loading .loading-item{
+        animation: none;
+        opacity: 0.7;
+        transform: none;
+    }
 }
 
 </style>

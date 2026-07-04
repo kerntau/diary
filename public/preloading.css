@@ -1,24 +1,38 @@
 body{
-  background-color: #373737;
+  background-color: #F5F5F7;
 }
 .preloading{
   display: flex;
   justify-content: center;
   align-items: center;
   flex-flow: column nowrap;
+  gap: 12px;
+  color: #1D1D1F;
 }
 
 .logo-preloading{
-  width: 60px;
+  width: 74px;
+  height: 74px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
 }
 .logo-preloading img{
   width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .preloading-title{
   text-align: center;
   font-size: 12px;
-  color: #FFCC00;
+  font-weight: 650;
+  color: #6E6E73;
 }
 
 
@@ -26,123 +40,67 @@ body{
 /* LOADING */
 
 .preloading-loading {
-  box-sizing: content-box;
-  height: 30px;
-  padding: 7.5px 10px;
+  box-sizing: border-box;
+  height: 28px;
+  padding: 8px 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
 }
 .preloading-loading .preloading-loading-item {
-  width: 3px;
-  margin-right: 5px;
-}
-.preloading-loading .preloading-loading-item:last-child {
-  margin-right: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background-color: #007AFF;
+  opacity: 0.34;
+  transform: scale(0.86);
+  animation: loading-dot 1s infinite ease-in-out;
 }
 .preloading-loading .preloading-loading-1 {
-  -webkit-animation: load-frame-1 1.2s infinite linear 0s;
-  -o-animation: load-frame-1 1.2s infinite linear 0s;
-  animation: load-frame-1 1.2s infinite linear 0s;
-  -webkit-box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.1);
-  -moz-box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.1);
-  box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.1);
-  background-color: #FF3B30;
+  animation-delay: 0s;
 }
 .preloading-loading .preloading-loading-2 {
-  -webkit-animation: load-frame-2 1.2s infinite linear 0s;
-  -o-animation: load-frame-2 1.2s infinite linear 0s;
-  animation: load-frame-2 1.2s infinite linear 0s;
-  -webkit-box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.1);
-  -moz-box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.1);
-  box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.1);
-  background-color: #FFCC00;
+  animation-delay: 0.12s;
 }
 .preloading-loading .preloading-loading-3 {
-  -webkit-animation: load-frame-3 1.2s infinite linear 0s;
-  -o-animation: load-frame-3 1.2s infinite linear 0s;
-  animation: load-frame-3 1.2s infinite linear 0s;
-  -webkit-box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.1);
-  -moz-box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.1);
-  box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.1);
-  background-color: #8BC34A;
+  animation-delay: 0.24s;
 }
 .preloading-loading .preloading-loading-4 {
-  -webkit-animation: load-frame-4 1.2s infinite linear 0s;
-  -o-animation: load-frame-4 1.2s infinite linear 0s;
-  animation: load-frame-4 1.2s infinite linear 0s;
-  -webkit-box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.1);
-  -moz-box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.1);
-  box-shadow: 2px 4px 2px rgba(0, 0, 0, 0.1);
-  background-color: #007AFF;
+  animation-delay: 0.36s;
 }
 
-@keyframes load-frame-1 {
-  0% {
-    height: 4.5px;
+@keyframes loading-dot {
+  0%, 80%, 100% {
+    opacity: 0.34;
+    transform: scale(0.86);
   }
-  25% {
-    height: 19.5px;
-  }
-  50% {
-    height: 30px;
-  }
-  75% {
-    height: 19.5px;
-  }
-  100% {
-    height: 4.5px;
-  }
-}
-@keyframes load-frame-2 {
-  0% {
-    height: 19.5px;
-  }
-  25% {
-    height: 30px;
-  }
-  50% {
-    height: 19.5px;
-  }
-  75% {
-    height: 4.5px;
-  }
-  100% {
-    height: 19.5px;
-  }
-}
-@keyframes load-frame-3 {
-  0% {
-    height: 30px;
-  }
-  25% {
-    height: 19.5px;
-  }
-  50% {
-    height: 4.5px;
-  }
-  75% {
-    height: 19.5px;
-  }
-  100% {
-    height: 30px;
-  }
-}
-@keyframes load-frame-4 {
-  0% {
-    height: 19.5px;
-  }
-  25% {
-    height: 4.5px;
-  }
-  50% {
-    height: 19.5px;
-  }
-  75% {
-    height: 30px;
-  }
-  100% {
-    height: 19.5px;
+  40% {
+    opacity: 1;
+    transform: scale(1.18);
   }
 }
 
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #000000;
+  }
+  .preloading {
+    color: #F5F5F7;
+  }
+  .logo-preloading {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(28, 28, 30, 0.86);
+  }
+  .preloading-title {
+    color: #98989D;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preloading-loading .preloading-loading-item {
+    animation: none;
+    opacity: 0.7;
+    transform: none;
+  }
+}

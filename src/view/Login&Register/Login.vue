@@ -159,6 +159,7 @@ function useTestAccount() {
     color: var(--diary-ink);
     display: grid;
     place-items: center;
+    overflow: hidden auto;
 }
 .ios-login-shell{
     position: relative;
@@ -167,6 +168,7 @@ function useTestAccount() {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    gap: 18px;
 }
 .ios-login-card{
     width: 100%;
@@ -180,12 +182,12 @@ function useTestAccount() {
 .logo-wrapper{
     display: flex;
     justify-content: center;
-    margin-bottom: 24px;
+    margin-bottom: 22px;
 }
 .logo{
-    width: 88px;
-    height: 88px;
-    flex: 0 0 88px;
+    width: 84px;
+    height: 84px;
+    flex: 0 0 84px;
     display: grid;
     place-items: center;
     overflow: hidden;
@@ -201,7 +203,7 @@ function useTestAccount() {
     }
 }
 .ios-login-heading{
-    margin-bottom: 28px;
+    margin-bottom: 26px;
     text-align: center;
     p{
         margin-bottom: 6px;
@@ -235,10 +237,8 @@ function useTestAccount() {
     justify-content: center;
 }
 .copyright{
-    left: 0;
     width: 100%;
-    position: fixed;
-    bottom: 30px;
+    min-height: 16px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -271,7 +271,11 @@ function useTestAccount() {
 }
 @media (max-width: 640px) {
     .login-page{
-        padding: 16px;
+        padding: 18px;
+        place-items: start center;
+    }
+    .ios-login-shell{
+        min-height: calc(100dvh - 36px);
     }
     .ios-login-card{
         padding: 24px;
@@ -280,9 +284,20 @@ function useTestAccount() {
         margin-bottom: 20px;
     }
     .logo{
-        width: 76px;
-        height: 76px;
-        flex-basis: 76px;
+        width: 72px;
+        height: 72px;
+        flex-basis: 72px;
+    }
+    .ios-login-heading{
+        margin-bottom: 22px;
+        h1{
+            font-size: 27px;
+        }
+    }
+    .copyright{
+        flex-wrap: wrap;
+        gap: 6px;
+        line-height: 1.35;
     }
 }
 </style>
