@@ -38,18 +38,28 @@
         </main>
 
         <aside class="diary-edit-meta" aria-label="日记上下文">
-            <section class="meta-card date-context-section">
-                <div class="date-card-status">
+            <section class="meta-card date-context-section" aria-labelledby="date-context-title">
+                <header class="meta-card-header">
+                    <div>
+                        <p class="meta-card-kicker">时间</p>
+                        <h2 id="date-context-title">这一天</h2>
+                    </div>
                     <span class="meta-status-pill" :class="{changed: diaryHasChanged}">
                         {{ diaryHasChanged ? '未保存' : '已同步' }}
                     </span>
-                </div>
+                </header>
                 <EditorVCalendarSelector
                     @dayChange="dayHasChanged"
                     v-model="diary.date"/>
             </section>
 
-            <section class="meta-card writing-attributes-section">
+            <section class="meta-card writing-attributes-section" aria-labelledby="writing-attributes-title">
+                <header class="meta-card-header compact">
+                    <div>
+                        <p class="meta-card-kicker">归档</p>
+                        <h2 id="writing-attributes-title">写作属性</h2>
+                    </div>
+                </header>
                 <EditCategorySelector :category="diary.category" @change="setCategory"/>
                 <MoodTagPicker
                     v-model:mood="diary.mood"

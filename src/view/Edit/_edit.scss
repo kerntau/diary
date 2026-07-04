@@ -152,11 +152,44 @@
 .meta-card {
   display: grid;
   gap: 12px;
-  padding: 16px 18px 18px;
+  padding: 16px;
   border: 1px solid color-mix(in srgb, var(--diary-border) 82%, transparent);
   border-radius: 8px;
   background: var(--diary-surface);
   box-shadow: var(--diary-hairline-shadow);
+}
+
+.meta-card-header {
+  min-height: 30px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+
+  &.compact {
+    align-items: center;
+  }
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    color: var(--diary-ink);
+    font-size: 15px;
+    line-height: 1.35;
+    font-weight: 760;
+    letter-spacing: 0;
+  }
+}
+
+.meta-card-kicker {
+  margin-bottom: 2px !important;
+  color: var(--diary-muted);
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 680;
 }
 
 .writing-attributes-section {
@@ -179,12 +212,7 @@
 }
 
 .date-context-section {
-  gap: 12px;
-}
-
-.date-card-status {
-  display: flex;
-  justify-content: flex-end;
+  gap: 10px;
 }
 
 .date-selector {
@@ -193,7 +221,7 @@
 }
 
 .date-set-item {
-  min-height: 64px;
+  min-height: 58px;
   display: grid;
   grid-template-columns: 36px minmax(0, 1fr) 36px;
   align-items: center;
@@ -220,7 +248,7 @@
 
 .datetime {
   min-width: 0;
-  padding: 7px 8px 8px;
+  padding: 6px 8px 7px;
   border-radius: 8px;
   display: flex;
   align-items: baseline;
@@ -235,7 +263,7 @@
   }
 
   .date {
-    font-size: 30px;
+    font-size: 28px;
     line-height: 1.1;
     font-weight: 760;
     font-variant-numeric: tabular-nums;
@@ -243,7 +271,7 @@
 
   .time {
     color: var(--diary-muted);
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 650;
     font-variant-numeric: tabular-nums;
   }
@@ -252,9 +280,9 @@
 .date-meta {
   display: flex;
   justify-content: center;
-  gap: 46px;
+  gap: 32px;
   color: var(--diary-muted);
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .weather-summary {
@@ -359,7 +387,7 @@
 
 .context-actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   align-items: center;
 }
@@ -403,6 +431,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
+  align-items: center;
 }
 
 @media (max-width: 1180px) {
@@ -418,7 +447,7 @@
   }
 
   .writing-attributes-section {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

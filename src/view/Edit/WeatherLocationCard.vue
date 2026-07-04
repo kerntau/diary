@@ -1,5 +1,15 @@
 <template>
-    <section class="meta-card weather-context-section">
+    <section class="meta-card weather-context-section" aria-labelledby="weather-context-title">
+        <header class="meta-card-header compact">
+            <div>
+                <p class="meta-card-kicker">环境</p>
+                <h2 id="weather-context-title">天气与位置</h2>
+            </div>
+            <NButton quaternary size="small" :disabled="!contextUpdatedAt" @click="emit('clear')">
+                清除
+            </NButton>
+        </header>
+
         <div class="weather-summary">
             <div class="weather-summary-main">
                 <span class="weather-kicker">{{ weatherLabel }}</span>
@@ -27,7 +37,7 @@
         </div>
 
         <NForm class="weather-form" label-placement="top" :show-feedback="false">
-            <NGrid :cols="2" :x-gap="10" :y-gap="10" responsive="screen">
+            <NGrid :cols="2" :x-gap="8" :y-gap="8" responsive="screen">
                 <NFormItemGi label="室内温度">
                     <NInput
                         size="small"
@@ -44,23 +54,18 @@
                         @update:value="value => emit('update:temperatureOutside', value)"
                     />
                 </NFormItemGi>
-                <NFormItemGi label="城市" :span="2">
-                    <div class="city-resolve-row">
-                        <NInput size="small" v-model:value="cityKeyword" placeholder="例如：上海"/>
-                        <NButton size="small" secondary :loading="loading" @click="emit('resolve-city', cityKeyword)">识别</NButton>
-                    </div>
-                </NFormItemGi>
             </NGrid>
         </NForm>
 
         <div class="context-actions">
-            <NButton secondary size="small" block :loading="loading" @click="emit('resolve-location')">
+            <NButton secondary type="primary" size="small" block :loading="loading" @click="emit('resolve-location')">
                 <template #icon><LocateFixed :size="16"/></template>
                 使用当前位置
             </NButton>
-            <NButton quaternary size="small" :disabled="!contextUpdatedAt" @click="emit('clear')">
-                清除
-            </NButton>
+            <div class="city-resolve-row">
+                <NInput size="small" v-model:value="cityKeyword" placeholder="手动城市"/>
+                <NButton size="small" secondary :loading="loading" @click="emit('resolve-city', cityKeyword)">识别</NButton>
+            </div>
         </div>
     </section>
 </template>
