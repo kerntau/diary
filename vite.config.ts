@@ -53,7 +53,7 @@ export default defineConfig({
             },
 
             // MANIFEST PWA https://vite-pwa-org.netlify.app/guide/pwa-minimal-requirements.html
-            includeAssets: ['logo.svg', 'apple-touch-icon.png', 'mask-icon.svg', 'favicon.png'],
+            includeAssets: ['logo.png', 'favicon.ico'],
             manifest: {
                 name: '标题日记',
                 short_name: "日记",
@@ -63,13 +63,13 @@ export default defineConfig({
                 background_color: "#F5F5F7",
                 icons: [
                     {
-                        src: "logo.svg",
+                        src: "logo.png",
                         sizes: "512x512",
-                        type: "image/svg+xml",
+                        type: "image/png",
                         purpose: "any",
                     },
                     {
-                        src: "appicon-apple.png",
+                        src: "logo.png",
                         sizes: "512x512",
                         type: "image/png",
                         purpose: "any",

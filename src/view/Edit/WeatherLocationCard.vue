@@ -2,7 +2,6 @@
     <section class="context-section">
         <div class="context-section-header">
             <h3>天气与位置</h3>
-            <p>自动识别室外温度和城市，室内温度仍需手动填写。</p>
         </div>
 
         <div class="weather-summary">
@@ -11,6 +10,21 @@
                 <span>{{ weatherText || weather || '未识别天气' }}</span>
             </div>
             <div class="weather-temp">{{ temperatureOutside || '-' }}<small>℃</small></div>
+        </div>
+
+        <div class="weather-metrics" v-if="humidity || windText || contextUpdatedAt">
+            <div>
+                <span>湿度</span>
+                <strong>{{ humidity || '--' }}</strong>
+            </div>
+            <div>
+                <span>风况</span>
+                <strong>{{ windText || '--' }}</strong>
+            </div>
+            <div>
+                <span>更新</span>
+                <strong>{{ updatedLabel || '--' }}</strong>
+            </div>
         </div>
 
         <NForm label-placement="top" :show-feedback="false">
@@ -47,7 +61,6 @@
                 清除
             </NButton>
         </div>
-        <p v-if="contextUpdatedAt" class="context-updated">更新于 {{ updatedLabel }}</p>
     </section>
 </template>
 
@@ -63,6 +76,8 @@ const props = defineProps<{
     temperatureInside: string
     temperatureOutside: string
     locationName: string
+    humidity: string
+    windText: string
     contextUpdatedAt: string
 }>()
 

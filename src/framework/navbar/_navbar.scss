@@ -1,128 +1,228 @@
-@use "sass:color" as color;
-@use "../../scss/plugin" as *;
-
-.navbar-container{
-  z-index: $z-navbar;
+.navbar-container {
+  z-index: 200;
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0 0 auto;
   width: 100%;
 }
-.navbar{
-  height: $height-navbar;
-  overflow: hidden;
-  padding: 0 5px 0 0;
-  background-color: $bg-main;
+
+.navbar {
+  height: 45px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--diary-border);
+  background: rgba(251, 251, 253, 0.88);
   display: flex;
+  align-items: center;
   justify-content: space-between;
   position: relative;
-  .waterfall-count{
-    width: 50px;
-    font-family: "JetBrainsMonoDiary", sans-serif;
-    text-align: center;
-    padding: 0 5px;
-    font-size: $fz-label;
-    height: $height-navbar;
-    line-height: $height-navbar;
-    color: $text-menu-second;
+  overflow: visible;
+  box-shadow: var(--diary-hairline-shadow);
+  backdrop-filter: blur(20px);
+}
+
+.nav-part-left,
+.nav-part-right,
+.nav-action-group {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.nav-part-left {
+  flex: 1 1 auto;
+  justify-content: flex-start;
+  gap: 4px;
+}
+
+.nav-part-right {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.nav-action-group {
+  gap: 4px;
+}
+
+.nav-icon-button {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  color: var(--diary-muted);
+
+  :deep(.n-button__icon) {
+    margin: 0;
+    color: inherit;
   }
 
-  .brand{
-    left: 50%;
-    transform: translateX(-50%);
+  &:hover,
+  &.active {
+    background: rgba(0, 122, 255, 0.1);
+    color: var(--diary-accent);
+  }
+
+  &.danger:hover {
+    background: rgba(255, 59, 48, 0.12);
+    color: var(--diary-danger);
+  }
+
+  &.save {
+    color: #fff;
+
+    &.saved {
+      background: var(--diary-success);
+      border-color: var(--diary-success);
+    }
+  }
+}
+
+.nav-logo-button {
+  width: 40px;
+  min-width: 40px;
+}
+
+.nav-logo-image {
+  width: 26px;
+  height: 26px;
+  display: block;
+  object-fit: contain;
+  border-radius: 7px;
+}
+
+.nav-edit-title {
+  flex: 1;
+  min-width: 0;
+  padding: 0 8px;
+  color: var(--diary-ink);
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 45px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-filter-button {
+  height: 32px;
+  margin-left: 4px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.nav-clock {
+  height: 45px;
+  padding-right: 8px;
+}
+
+.brand {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  height: 45px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--diary-ink);
+  font-size: 15px;
+  font-weight: 750;
+  cursor: pointer;
+
+  img {
+    width: 25px;
+    height: 25px;
+    object-fit: contain;
+    border-radius: 7px;
+  }
+}
+
+#toast {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+
+  .mask {
     position: absolute;
-    cursor: pointer;
-    margin: 0 auto;
-    height: $height-navbar;
-    width: 80px;
-    img{
-      padding: 3px;
-      margin: 0 auto;
-      display: block;
-      height: $height-navbar;
-    }
+    inset: 0;
+    background: rgba(0, 0, 0, 0.42);
+    pointer-events: auto;
   }
 
-  .nav-btn-wrapper{
-    display: flex;
-
-  }
-
-  .nav-part-left{
-    display: flex;
-    justify-content: flex-start;
-    flex: 1;        // 为编辑标题留出可伸缩空间
-    min-width: 0;   // flex 子项省略号生效所需
-  }
-
-  // 移动端编辑页：返回按钮右侧的日记标题
-  .nav-edit-title{
-    flex: 1;
-    min-width: 0;
-    padding: 0 4px 0 2px;
-    height: $height-navbar;
-    line-height: $height-navbar;
-    color: $text-menu-first;
-    font-size: $fz-main;
-    white-space: nowrap;
+  .toast {
+    position: absolute;
+    z-index: 1;
+    width: min(300px, calc(100vw - 32px));
     overflow: hidden;
-    text-overflow: ellipsis;
+    border: 1px solid var(--diary-border);
+    border-radius: 8px;
+    background: var(--diary-surface);
+    color: var(--diary-ink);
+    box-shadow: var(--diary-card-shadow);
+    pointer-events: auto;
   }
 
-  .nav-part-right{
-    display: flex;
-    justify-content: flex-end;
+  .toast-header {
+    padding: 16px 18px 4px;
+    font-size: 16px;
+    font-weight: 750;
   }
 
-    .btn-text-group{
-    display: flex;
-    flex-flow: row nowrap;
-    height: $height-navbar;
-    align-items: center;
+  .toast-body {
+    min-height: 0;
+    padding: 0 18px 14px;
+    color: var(--diary-muted);
+    font-size: 13px;
+    line-height: 1.6;
   }
-  .btn-text{
-    margin-right: 10px;
-    font-size: $fz-small;
-    border: 1px solid transparent;
-    padding: 4px 8px;
-    color: white;
-    @extend .btn-like;
-    border-radius: $radius-mobile;
-    &.active{
-      border-color: color.adjust(white, $alpha: -0.7);
-      &:hover{
-        background-color: color.adjust(white, $alpha: -0.85);
-      }
-    }
-    &:hover{
-      background-color: color.adjust(white, $alpha: -0.85);
-    }
-    &.hole{
-      background-color: color.adjust($color-main, $alpha: -0.9);
-    }
+
+  .toast-footer {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--diary-border);
+  }
+
+  .btn-cancel,
+  .btn-confirm {
+    min-height: 44px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 650;
+  }
+
+  .btn-cancel {
+    color: var(--diary-muted);
+    border-right: 1px solid var(--diary-border);
+  }
+
+  .btn-confirm {
+    color: var(--diary-danger);
+  }
+}
+
+@media (max-width: 1023px) {
+  .navbar {
+    padding: 0 8px;
+    background: rgba(251, 251, 253, 0.94);
+  }
+
+  .nav-icon-button {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+  }
+
+  #toast .toast {
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%);
   }
 }
 
 @media (prefers-color-scheme: dark) {
-  // NAVBAR
-  .navbar{
-    background-color: $dark-bg-nav;
-    .btn-text{
-      color: $dark-text-title;
-    }
-    .nav-edit-title{
-      color: $dark-text-title;
-    }
+  .navbar {
+    background: rgba(28, 28, 30, 0.9);
   }
-  .menu-panel{
-    background-color: color.adjust($dark-bg, $lightness: -3%);
-  }
-
-  .menu-list-group-item{
-    &:after{
-      background-color: $dark-menu-border;
-    }
-  }
-
 }
-

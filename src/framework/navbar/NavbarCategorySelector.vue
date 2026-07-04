@@ -1,48 +1,39 @@
 <template>
-    <!--category-->
     <div class="navbar-category-filter">
-        <transition
-            enter-active-class="animated-fast slideInRight"
-            leave-active-class="animated-fast slideOutRight"
-        >
-            <div class="navbar-category-list-container">
-                <div class="navbar-category-list">
-                    <div :class="['navbar-category-list-item', {active: projectStore.filteredCategories.includes(item.name_en), 'pulse-animate': isAnimating === index}]"
-                         v-for="(item, index) in useStatisticStore().categoryAll" :key="index"
-                         :title="item.name"
-                         @click="toggleCategory(item, index)"
-                    >
-                        <div v-if="projectStore.navbarCategoryShowStyle === EnumNavbarCategoryShowStyle.dot"
-                             class="dot"
-                             :style="dotStyle(item)"></div>
-                        <div v-if="projectStore.navbarCategoryShowStyle === EnumNavbarCategoryShowStyle.text"
-                             class="name"
-                             :style="itemStyle(item)"> {{ item.name }}
-                        </div>
-                    </div>
+        <div class="navbar-category-list-container">
+            <div class="navbar-category-list">
+                <button
+                    :class="['navbar-category-chip', {active: isCategoryActive(item.name_en)}]"
+                    v-for="(item, index) in useStatisticStore().categoryAll"
+                    :key="item.name_en"
+                    type="button"
+                    :title="`筛选${item.name}`"
+                    @click="toggleCategory(item, index)"
+                >
+                    <span class="dot" :style="dotStyle(item)"></span>
+                    <span>{{ item.name }}</span>
+                </button>
 
-                    <div :class="['navbar-category-list-item', 'share-item' ,'ml-2', {active: projectStore.isFilterShared}]"
-                         @click="toggleFilterShared">
-                        <div v-if="projectStore.navbarCategoryShowStyle === EnumNavbarCategoryShowStyle.dot"
-                             class="dot"></div>
-                        <div v-if="projectStore.navbarCategoryShowStyle === EnumNavbarCategoryShowStyle.text"
-                             class="name">共享</div>
-                    </div>
+                <button
+                    :class="['navbar-category-chip', 'share-item', {active: projectStore.isFilterShared}]"
+                    type="button"
+                    title="只看公开日记"
+                    @click="toggleFilterShared"
+                >
+                    <span class="dot"></span>
+                    <span>公开</span>
+                </button>
 
-                    <div class="navbar-category-list-item special" @click="reverseCategorySelect">反选</div>
-                    <div class="navbar-category-list-item special" @click="selectCategoryNone">清选</div>
-
-                </div>
+                <button class="navbar-category-action" type="button" title="反选分类" @click="reverseCategorySelect">反选</button>
+                <button class="navbar-category-action" type="button" title="清空分类筛选" @click="selectCategoryNone">清空</button>
             </div>
-
-
-        </transition>
+        </div>
     </div>
 </template>
 
 <script lang="ts" setup>
 import {useProjectStore} from "@/pinia/useProjectStore.ts";
-import {CategoryEntity, EnumNavbarCategoryShowStyle} from "@/entity/Category.ts";
+import {CategoryEntity} from "@/entity/Category.ts";
 import {useStatisticStore} from "@/pinia/useStatisticStore.ts";
 import {ref} from "vue";
 
@@ -85,179 +76,104 @@ function reverseCategorySelect() {
 
 
 // DOT STYLE
-function dotStyle(category: CategoryEntity){
-    const isActive = projectStore.filteredCategories.indexOf(category.name_en) > -1
-    if (isActive){
-        return `border-color: ${category.color}; background-color: ${category.color};`
-    } else {
-        return `border-color: ${category.color};`
-    }
+function isCategoryActive(categoryName: string) {
+    return projectStore.filteredCategories.includes(categoryName)
 }
 
-// TEXT STYLE
-function itemStyle(category: CategoryEntity){
-    if (projectStore.filteredCategories.indexOf(category.name_en) > -1){
-        return `color: white; background-color: ${category.color}`
-    } else {
-        return `color: ${category.color}`
-    }
+function dotStyle(category: CategoryEntity) {
+    return `background-color: ${category.color}; box-shadow: 0 0 0 3px ${category.color}24;`
 }
 </script>
 
 <style lang="scss" scoped>
-@use "sass:color" as color;
-
-@use "sass:math";
-@use "../../scss/plugin" as *;
-$nav-btn-height: 15px;
-
 .navbar-category-filter{
     display: flex;
+    align-items: center;
+    min-width: 0;
 }
 
 .navbar-category-list-container{
     display: flex;
+    min-width: 0;
 }
 
 .navbar-category-list{
-    flex-shrink: 0;
-    flex-grow: 1;
     align-items: center;
     display: flex;
-    flex-flow: row nowrap;
-    justify-content: flex-start;
-    padding: math.div($height-navbar - $nav-btn-height * 2, 2);
-    height: $height-navbar;
+    gap: 6px;
+    min-width: 0;
+    height: 45px;
+    overflow: hidden;
 }
 
-.navbar-category-list-item{
-    //font-size: $fz-small;
+.navbar-category-chip,
+.navbar-category-action{
+    min-height: 32px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--diary-muted);
+    cursor: pointer;
+    font: inherit;
     font-size: 13px;
-    height: $nav-btn-height;
-    font-weight: bold;
-    line-height: $nav-btn-height;
-    color: color.adjust(white, $alpha: -0.6);
-    border-left: 1px solid transparent;
-    //@extend .btn-like;
+    font-weight: 650;
+    letter-spacing: 0;
+    transition:
+        background-color var(--diary-transition),
+        border-color var(--diary-transition),
+        color var(--diary-transition);
+}
+
+.navbar-category-chip{
+    padding: 0 10px;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    flex-flow: row nowrap;
-    cursor: pointer;
-    @extend .unselectable;
-
-    &.special{
-        padding: 2px;
-        color: color.adjust($color-main, $alpha: -0.4);
-    }
-    &.active{
-        &:hover{
-            text-shadow: 2px 2px 1px color.adjust(black, $alpha: -0.5);
-        }
-        .dot{
-            border-width: 2px;
-            opacity: 1;
-            height: 20px;
-            background-color: inherit;
-        }
-        .name{
-            text-shadow: 0px 1px 1px color.adjust(black, $alpha: -0.5);
-            opacity: 1;
-        }
-    }
+    gap: 7px;
+    white-space: nowrap;
 
     &.share-item{
         .dot{
-            border-color: white;
-        }
-        .name{
-            color: white;
-        }
-
-        &.active{
-            .dot{
-                border-color: black;
-            }
-            .name{
-                background:gray;
-                color: white;
-            }
-        }
-        &:hover{
-            .dot{
-                box-shadow: 0 0 3px rgba(255,255,255,0.7);
-            }
-            .name{
-                opacity: 1;
-            }
+            background: var(--diary-muted-2);
+            box-shadow: 0 0 0 3px rgba(142, 142, 147, 0.16);
         }
     }
+
     &:hover{
-        font-weight: bold;
-        color: rgba(255,255,255,0.6);
-        &.special{
-            color: color.adjust($color-main, $alpha: -0.2);
-        }
-        .dot{
-            box-shadow: 0 0 3px rgba(255,255,255,0.7);
-            opacity: 1;
-        }
-        .name{
-            opacity: 1;
-        }
+        background: rgba(0, 122, 255, 0.09);
+        color: var(--diary-ink);
     }
 
-    .dot{
-        padding: 0 3px;
-        opacity: 0.8;
-        background-color: transparent;
-        border: 2px solid transparent;
-        display: block;
-        width: 10px;
-        height: 10px;
-        border-radius: 8px;
-        margin-right: 8px;
-        transition: all 0.2s;
-    }
-    .name{
-        border-radius: 3px;
-        padding: 3px 4px;
-        opacity: 0.6;
-        transition: all 0.2s;
+    &.active{
+        border-color: rgba(0, 122, 255, 0.26);
+        background: rgba(0, 122, 255, 0.12);
+        color: var(--diary-accent);
     }
 }
 
-$height-indicator: 8px;
-.indicator-list{
-    width: $height-indicator * (8+3);
-    cursor: pointer;
-    @extend .btn-like;
-    height: $height-navbar;
-    //padding: ($height-navbar - $height-indicator * 2 - 3)/2 0;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    flex-flow: row nowrap;
-    .indicator-list-item{
-        margin-right: 3px;
-        flex-shrink: 0;
-        border: 1px dotted white;
-        height: $height-indicator;
-        width: $height-indicator;
-        border-radius: 2px;
-        &:nth-child(2n){
-            margin-bottom: 0;
-        }
+.dot{
+    display: block;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    flex: 0 0 auto;
+}
+
+.navbar-category-action{
+    min-width: 0;
+    padding: 0 7px;
+    color: var(--diary-muted-2);
+    font-size: 12px;
+
+    &:hover{
+        background: var(--diary-surface-muted);
+        color: var(--diary-ink);
     }
 }
 
-@media (max-width: $grid-separate-width-sm) {
-    .navbar-category-list{
+@media (max-width: 1280px) {
+    .navbar-category-action,
+    .share-item{
         display: none;
     }
-    .navbar-category-list-special{
-        display: none;
-    }
-
 }
 </style>

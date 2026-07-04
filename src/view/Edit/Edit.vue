@@ -1,104 +1,63 @@
 <template>
     <div class="diary-edit-container" :style="`min-height: ${projectStore.insets.heightPanel}px`">
-
-
-        <div class="diary-edit-content">
-            <EditorStatusBar
-                :word-count="editorWordCount"
-                :line-count="editorLineCount"
-                :has-changed="diaryHasChanged"
-                :has-local-draft="hasLocalDraft"
-                :draft-saved-at-label="draftSavedAtLabel"
-                :last-saved-at-label="lastSavedAtLabel"
-                @restore-draft="restoreLocalDraft"
-            />
-            <!-- TITLE -->
-            <div class="editor-title">
-                <label class="hidden"></label>
-                <textarea ref="refDiaryTitleTextArea"
-                          class="title"
-                          placeholder="一句话，概括你的一天"
-                          v-model="diary.title"/>
-            </div>
-            <!-- CONTENT -->
-            <div class="editor-content">
-                <PossibleBillKeySelector
-                    :possible-bill-items="possibleBillItems"
-                    :position-left="keysPanelPositionLeft"
-                    :position-top="keysPanelPositionTop"
-                    @selectKey="insertNewBillKey"
+        <main class="diary-edit-content" aria-label="日记编辑器">
+            <div class="writing-paper">
+                <EditorStatusBar
+                    :word-count="editorWordCount"
+                    :line-count="editorLineCount"
+                    :has-changed="diaryHasChanged"
+                    :has-local-draft="hasLocalDraft"
+                    :draft-saved-at-label="draftSavedAtLabel"
+                    :last-saved-at-label="lastSavedAtLabel"
+                    @restore-draft="restoreLocalDraft"
                 />
-                <label class="hidden"></label>
-                <textarea
-                    ref="refDiaryContentTextArea"
-                    v-model="diary.content"
-                    :style="contentTextareaStyle"
-                    :wrap="diary.category === 'code' ? 'off' : 'soft'"
-                    placeholder="日记详细内容，如果你有很多要写的"
-                    @input="contentUpdate($event)"
-                    :class="['content', {'is-code': diary.category === 'code'}]"></textarea>
-                <div class="editor-float-btn" v-if="diary.is_markdown">
-                    <ButtonSmall @click="toggleSpaceShow">切换空格显示</ButtonSmall>
+
+                <div class="editor-title">
+                    <label for="diary-title">标题</label>
+                    <textarea
+                        id="diary-title"
+                        ref="refDiaryTitleTextArea"
+                        class="title"
+                        placeholder="一句话，概括你的一天"
+                        v-model="diary.title"
+                    />
+                </div>
+
+                <div class="editor-content">
+                    <label for="diary-content">正文</label>
+                    <textarea
+                        id="diary-content"
+                        ref="refDiaryContentTextArea"
+                        v-model="diary.content"
+                        :style="contentTextareaStyle"
+                        wrap="soft"
+                        placeholder="把今天真正想留下的事写在这里"
+                        class="content"
+                    />
                 </div>
             </div>
-        </div>
+        </main>
 
-
-        <div class="diary-edit-meta">
-            <!--  主参数区 -->
-            <div class="editor-form">
+        <aside class="diary-edit-meta" aria-label="日记上下文">
+            <section class="context-section date-context-section">
+                <div class="context-section-header">
+                    <h3>时间</h3>
+                </div>
                 <EditorVCalendarSelector
                     @dayChange="dayHasChanged"
                     v-model="diary.date"/>
+            </section>
 
-                <div class="editor-meta-switches">
-                    <div class="editor-form-item">
-                        <label for="temp-inside">身处</label>
-                        <TemperatureSetItem
-                            unit="℃"
-                            v-model="diary.temperature"/>
-                    </div>
-                    <div class="editor-form-item">
-                        <label for="temp-outside">室外</label>
-                        <TemperatureSetItem
-                            unit="℃"
-                            v-model="diary.temperature_outside"/>
-                    </div>
-
-                    <div class="editor-form-item">
-                        <label for="shareState">共享</label>
-                        <div class="input">
-                            <input class="share"
-                                   type="checkbox"
-                                   name="share"
-                                   id="shareState"
-                                   v-model="diary.is_public"
-                            >
-                            <label class="switch" for="shareState"></label>
-                        </div>
-                    </div>
-                    <div class="editor-form-item">
-                        <label for="markdown">MarkDown</label>
-                        <div class="input">
-                            <input class="share"
-                                   type="checkbox"
-                                   name="share"
-                                   id="markdown"
-                                   v-model="diary.is_markdown"
-                            >
-                            <label class="switch" for="markdown"></label>
-                        </div>
-                    </div>
+            <section class="context-section writing-attributes-section">
+                <div class="context-section-header">
+                    <h3>写作属性</h3>
                 </div>
-            </div>
-
-            <!-- 类别选择 -->
-            <EditCategorySelector :category="diary.category" @change="setCategory"/>
-
-            <MoodTagPicker
-                v-model:mood="diary.mood"
-                v-model:tags="diary.tags"
-            />
+                <EditCategorySelector :category="diary.category" @change="setCategory"/>
+                <MoodTagPicker
+                    v-model:mood="diary.mood"
+                    v-model:tags="diary.tags"
+                />
+            </section>
 
             <WeatherLocationCard
                 :loading="isResolvingContext"
@@ -107,6 +66,8 @@
                 :temperature-inside="String(diary.temperature || '')"
                 :temperature-outside="String(diary.temperature_outside || '')"
                 :location-name="diary.locationName || ''"
+                :humidity="diary.humidity || ''"
+                :wind-text="diary.windText || ''"
                 :context-updated-at="diary.contextUpdatedAt || ''"
                 @update:temperature-inside="value => diary.temperature = value"
                 @update:temperature-outside="value => diary.temperature_outside = value"
@@ -115,67 +76,55 @@
                 @clear="clearDiaryContext"
             />
 
-            <!--  周报载入按钮  -->
-            <LoadingButton
-                :is-loading="isLoading"
-                type="light"
-                v-if="diary.category === 'week'"
-                @click="loadCurrentWeekLogs">载入本周工作日志</LoadingButton>
-
-
-            <WeatherSelector :weather="diary.weather" @change="setWeather"/>
-        </div>
+            <section class="context-section">
+                <div class="context-section-header">
+                    <h3>写作设置</h3>
+                </div>
+                <NForm label-placement="left" label-width="92" :show-feedback="false">
+                    <NFormItem label="公开分享">
+                        <NSwitch v-model:value="diary.is_public"/>
+                    </NFormItem>
+                    <NFormItem label="Markdown">
+                        <NSwitch v-model:value="diary.is_markdown"/>
+                    </NFormItem>
+                </NForm>
+            </section>
+        </aside>
     </div>
 </template>
 
 <script lang="ts" setup>
-import axios from "axios"
 import Moment from 'moment'
+import {NForm, NFormItem, NSwitch} from "naive-ui"
 
 // components
 import EditCategorySelector from "./CategorySelector/EditorCategorySelector.vue"
-import WeatherSelector from "./WeatherSelector/WeatherSelector.vue"
-import LoadingButton from "@/components/LoadingButton.vue"
-import ButtonSmall from "@/components/ButtonSmall.vue";
-import TemperatureSetItem from "./TemperatureSetItem.vue";
-import PossibleBillKeySelector from "./PossibleBillKeySelector.vue";
 import EditorStatusBar from "./EditorStatusBar.vue";
 import MoodTagPicker from "./MoodTagPicker.vue";
 import WeatherLocationCard from "./WeatherLocationCard.vue";
 
 import {
     popMessage,
-    getBillKeys,
-    getAuthorization,
     temperatureProcessSTC, temperatureProcessCTS, dateFormatter
 } from "@/utility.ts";
 import diaryApi from "@/api/diaryApi.ts"
 import {useProjectStore} from "@/pinia/useProjectStore.ts";
-import {useSystemConfigStore} from "@/pinia/useSystemConfigStore.ts";
 const projectStore = useProjectStore()
-const systemConfigStore = useSystemConfigStore()
 import {computed, nextTick, onBeforeMount, onBeforeUnmount, onMounted, Ref, ref, watch} from "vue";
 import {onBeforeRouteLeave, useRoute, useRouter} from "vue-router";
-import SVG_ICONS from "@/assets/icons/SVG_ICONS.ts";
 
 // ENTITY
 import {
     EntityDiaryForm,
-    EntityDiaryFromServer,
-    DiarySearchParams,
-    DiarySubmitEntity, EnumWeather,
+    DiarySubmitEntity,
     ResponseDiaryAdd
 } from "@/view/DiaryList/Diary.ts";
 import {storeToRefs} from "pinia";
 
 const route = useRoute()
 const router = useRouter()
-const projectConfig = computed(() => systemConfigStore.config)
 
-const spaceIdentifier = ref('✎') // 为了判断目前是否处于空格显示状态
 const isNew = ref(true)
-const isLoading = ref(false)
-const isSavingDiary = ref(false)  // 是否正在保存日记
 const hasTriedAutoRefreshWeather = ref(false)
 const isResolvingContext = ref(false)
 const draftSavedAt = ref('')
@@ -257,31 +206,11 @@ const recoverDiaryContent = ref({  // 编辑过程中点击了隐藏按钮，此
     content: ''
 })
 
-const requestData = ref<DiarySearchParams>({ // 请求本周日志的 requestData
-    keywords: [],
-    pageNo: 1,
-    pageSize: 15, // 单页请求条数
-    categories: JSON.stringify(['work']),
-    filterShared: 0, // 1 是筛选，0 是不筛选
-})
-
 /**
  * Date Picker
  */
 import 'v-calendar/style.css';
 import EditorVCalendarSelector from "@/view/Edit/EditorVCalendarSelector.vue";
-import {BillKey} from "@/view/Bill/Bill.ts";
-import TimePicker from "@/view/Edit/TimePicker.vue";
-
-
-/**
- * Bill Keys
- */
-const billKeys = ref<Array<BillKey>>([])
-const possibleBillItems = ref<Array<BillKey>>([])
-const keysPanelPositionLeft = ref(150)
-const keysPanelPositionTop = ref(20)
-const billItemsDebounceTimer = ref<NodeJS.Timeout | null>(null)
 
 const refDiaryContentTextArea = ref()
 const refDiaryTitleTextArea = ref()
@@ -306,9 +235,6 @@ onBeforeMount(() => {
 })
 
 onMounted(()=>{
-    // 获取账单常用项目列表
-    billKeys.value = getBillKeys()
-
     // 网页标签关闭前提醒
     window.onbeforeunload = () => {
         if (diaryHasChanged.value) {
@@ -347,31 +273,7 @@ onMounted(()=>{
 
         // 编辑器快捷键
         refDiaryContentTextArea.value.addEventListener('keydown', (event: KeyboardEvent) => {
-            if (possibleBillItems.value.length > 0) {
-                // 账单待选项选择
-                switch (event.key) {
-                    case 'Tab':
-                        insertNewBillKey(possibleBillItems.value[0].key)
-                        event.preventDefault()
-                        break;
-                    case '1':
-                    case '2':
-                    case '3':
-                    case '4':
-                    case '5':
-                    case '6':
-                    case '7':
-                    case '8':
-                    case '9':
-                        insertNewBillKey(possibleBillItems.value[Number(event.key) - 1].key)
-                        event.preventDefault()
-                        break;
-                    default:
-                        break;
-                }
-            } else {
-                addKeyboardEventListener(event, refDiaryContentTextArea, diary, 'content')
-            }
+            addKeyboardEventListener(event, refDiaryContentTextArea, diary, 'content')
         })
     })
 
@@ -543,12 +445,6 @@ onBeforeUnmount(() => {
     // 目前只有一个场景用到，就是屏幕窗口大小变化时， Edit 会消失再出现，结果就是
     // 会选择用户在这期间写的内容，这是极不应该的。
     cacheCurrentDiary()
-    
-    // 清理防抖定时器
-    if (billItemsDebounceTimer.value) {
-        clearTimeout(billItemsDebounceTimer.value)
-        billItemsDebounceTimer.value = null
-    }
     if (draftSaveTimer) {
         clearTimeout(draftSaveTimer)
         draftSaveTimer = null
@@ -583,7 +479,17 @@ const diaryHasChanged = computed(() => {
             diary.value.weather !== diaryOrigin.value.weather ||
             diary.value.category !== diaryOrigin.value.category ||
             diary.value.is_public !== diaryOrigin.value.is_public ||
-            diary.value.is_markdown !== diaryOrigin.value.is_markdown
+            diary.value.is_markdown !== diaryOrigin.value.is_markdown ||
+            diary.value.mood !== diaryOrigin.value.mood ||
+            JSON.stringify(diary.value.tags || []) !== JSON.stringify(diaryOrigin.value.tags || []) ||
+            diary.value.locationName !== diaryOrigin.value.locationName ||
+            diary.value.longitude !== diaryOrigin.value.longitude ||
+            diary.value.latitude !== diaryOrigin.value.latitude ||
+            diary.value.weatherText !== diaryOrigin.value.weatherText ||
+            diary.value.weatherCode !== diaryOrigin.value.weatherCode ||
+            diary.value.humidity !== diaryOrigin.value.humidity ||
+            diary.value.windText !== diaryOrigin.value.windText ||
+            diary.value.contextUpdatedAt !== diaryOrigin.value.contextUpdatedAt
         )
     }
 })
@@ -601,22 +507,10 @@ watch(() => route.params.id, newDiaryId => {
     nextTick(checkLocalDraft)
 }, {immediate: true})
 
-watch(
-    () => [projectConfig.value.hefeng_weather_api_host, projectConfig.value.hefeng_weather_api_key],
-    () => {
-        // 配置异步加载完成后再补一次，避免刷新时首次未取到天气
-        tryRefreshWeatherForTodayDiary()
-    }
-)
-
-watch(diary, newValue => {
+watch(diary, () => {
         updateDiaryIcon()  // 更新 navbar icon
         cacheCurrentDiary() // 缓存当前日记内容
         scheduleLocalDraftSave()
-
-        if (newValue.content === '') {
-            possibleBillItems.value = []
-        }
     },
     {deep: true}
 )
@@ -653,65 +547,6 @@ watch(isHideContent, newValue => {
     }
 })
 
-// bill insert prompt
-function insertNewBillKey(billKey: string){
-    // console.log(billKey)
-    possibleBillItems.value = []
-
-    let lineArray = diary.value.content.split('\n').filter((item: string) => item !== '')
-    lineArray.pop()
-    lineArray.push(billKey + ' ')
-    diary.value.content = lineArray.join('\n')
-    refDiaryContentTextArea.value.focus()
-}
-
-// contentUpdate
-function contentUpdate(event: Event){
-    if (diary.value.category === 'bill'){
-        let content = (event.target as HTMLTextAreaElement).value
-        if (content){
-            let lineArray = content.split('\n')
-            keysPanelPositionTop.value = lineArray.length * 24 + 15
-            let lastWord = lineArray[lineArray.length - 1]
-            keysPanelPositionLeft.value = lastWord.length * 15 + 30
-            
-            // 清除之前的定时器
-            if (billItemsDebounceTimer.value) {
-                clearTimeout(billItemsDebounceTimer.value)
-                billItemsDebounceTimer.value = null
-            }
-            
-            // 延迟300ms再显示匹配的账单条目，避免快速输入数字时被识别成序号选择
-            billItemsDebounceTimer.value = setTimeout(() => {
-                if (lastWord !== ''){
-                    possibleBillItems.value = billKeys.value.filter(item => item.key.indexOf(lastWord) > -1).splice(0,9)
-                } else {
-                    possibleBillItems.value = []
-                }
-                billItemsDebounceTimer.value = null
-            }, 300)
-        } else {
-            // 内容为空时，清除定时器并立即清空列表
-            if (billItemsDebounceTimer.value) {
-                clearTimeout(billItemsDebounceTimer.value)
-                billItemsDebounceTimer.value = null
-            }
-            possibleBillItems.value = []
-        }
-    }
-}
-
-function toggleSpaceShow(){
-    if (diary.value.content.indexOf(spaceIdentifier.value) > -1){
-        // 显示 space 模式
-        diary.value.content = diary.value.content.substring(0, diary.value.content.length - 1)
-        diary.value.content = diary.value.content.replace(/·/ig, ' ')
-    } else {
-        // 正常模式
-        diary.value.content = diary.value.content.replace(/ /ig, '·')
-        diary.value.content = diary.value.content + spaceIdentifier.value
-    }
-}
 // 日期前后移动
 function dayHasChanged(isToday: boolean){
     if (isToday){
@@ -757,91 +592,13 @@ function getTextareaInfo(textarea: HTMLTextAreaElement, textContent: string){
         cursorLineContent
     }
 }
-// 载入本星期的所有工作日志
-function loadCurrentWeekLogs() {
-    isLoading.value = true
-    diaryApi
-        .list(requestData.value)
-        .then(res => {
-            isLoading.value = false
-            const currentWeekStart = Moment(diary.value.date).startOf('week')
-            const currentWeekEnd = Moment(diary.value.date).endOf('week')
-            let workList = res.data.filter(item => {
-                let diaryDate = Moment(item.date)
-                return diaryDate.isBetween(currentWeekStart, currentWeekEnd)
-            })
-            diary.value.title = '周报'
-            diary.value.content = combineWeekWorkLog(workList)
-        })
-        .catch(() => {
-            isLoading.value = false
-        })
-}
-
-function combineWeekWorkLog(workList: EntityDiaryFromServer[]){
-    let contentStr = ''
-    workList.forEach(item => {
-        contentStr = contentStr + item.title + '\n' + item.content + '\n'
-    })
-    return contentStr
-}
-
-// 获取当前位置的天气气温信息
-function getCurrentTemperature(){
-    let geolocation = getAuthorization()?.geolocation
-    if (geolocation && projectConfig.value.hefeng_weather_api_host && projectConfig.value.hefeng_weather_api_key){
-        axios
-            .get(`https://${projectConfig.value.hefeng_weather_api_host}/v7/weather/now`,
-                {
-                    params: {
-                        key: projectConfig.value.hefeng_weather_api_key,
-                        location: geolocation
-                    }
-                })
-            .then(res => {
-                if (res.data.code === '200'){
-                    diary.value.temperature_outside =  res.data.now.temp
-                    diaryOrigin.value.temperature_outside =  res.data.now.temp
-                    diary.value.weather =  getWeatherNameFromCode(res.data.now.icon)
-                    diaryOrigin.value.weather =  getWeatherNameFromCode(res.data.now.icon)
-                }
-            })
-            .catch(err => {
-                console.log(err)
-            })
-    } else {
-        console.log('没有配置地域信息')
-        // popMessage('warning', '没有配置地域信息', null)
-    }
-}
-
 function setCategory(categoryNameEn: string) {
     diary.value.category = categoryNameEn
-    if (categoryNameEn === 'bill' && diary.value.title === ''){
-        diary.value.title = '账单'
-    }
-    
-    // 当类别不是账单时，清理防抖定时器并清空账单条目列表
-    if (categoryNameEn !== 'bill') {
-        if (billItemsDebounceTimer.value) {
-            clearTimeout(billItemsDebounceTimer.value)
-            billItemsDebounceTimer.value = null
-        }
-        possibleBillItems.value = []
-    }
-}
-function setWeather(weather: string) {
-    diary.value.weather = weather
 }
 function updateDiaryIcon() {
     document.title = diaryHasChanged.value ? '日记 - 编辑中...' : '日记' // 变更标题
     projectStore.editingDiaryTitle = diary.value.title // 同步至 navbar 展示
     projectStore.isDiaryEditorContentHasChanged = diaryHasChanged.value
-    if (diaryHasChanged.value) {
-        projectStore.editLogoImg = diary.value.content ? SVG_ICONS.logo_icons.logo_content: SVG_ICONS.logo_icons.logo_title
-    } else {
-        projectStore.editLogoImg = diary.value.content ? SVG_ICONS.logo_icons.logo_content_saved: SVG_ICONS.logo_icons.logo_title_saved
-    }
 }
 
 function localDraftKey() {
@@ -978,7 +735,7 @@ function saveDiary() {
     if (!/^(-?\d{1,3}(\.\d{1,2})?)?$/.test(diary.value.temperature)){
         popMessage('warning', '身处温度填写错误，应为 23.45 这样', ()=>{}, 2)
         return
-    } else if (!/^(-?\d{1,3}(\.\d{1,2})?)?$/.test(diary.value.temperature)){
+    } else if (!/^(-?\d{1,3}(\.\d{1,2})?)?$/.test(diary.value.temperature_outside)){
         popMessage('warning', '室外温度填写错误，请检查 23.45 这样', ()=>{}, 2)
         return
     } else if  (titleToSave.trim().length === 0) {
@@ -1012,7 +769,6 @@ function saveDiary() {
         contextUpdatedAt: diary.value.contextUpdatedAt,
     }
     if (isNew.value){
-        isSavingDiary.value = true
         projectStore.isSavingDiary = true
         diaryApi
             .add(requestData)
@@ -1024,10 +780,9 @@ function saveDiary() {
                 }, 3)
             })
             .finally(() => {
-                isSavingDiary.value = false
+                projectStore.isSavingDiary = false
             })
     } else {
-        isSavingDiary.value = true
         projectStore.isSavingDiary = true
         diaryApi
             .modify(requestData)
@@ -1039,7 +794,7 @@ function saveDiary() {
                 }, 3)
             })
             .finally(() => {
-                isSavingDiary.value = false
+                projectStore.isSavingDiary = false
             })
     }
 }
@@ -1083,7 +838,7 @@ function createDiary() {
 
     diary.value = {
         id: -1,
-        title: diary.value.category === 'bill'? '账单': '', // 在账单类别下新建时，自动填充标题为 账单
+        title: '',
         content: "",
         is_public: false,
         is_markdown: false,
@@ -1233,12 +988,6 @@ function clearDiaryContext() {
     diary.value.windText = ''
     diary.value.contextUpdatedAt = ''
     diary.value.temperature_outside = ''
-}
-
-
-// 和风天气 API 天气图标对应： https://dev.qweather.com/docs/start/icons/
-function getWeatherNameFromCode(code: string): string{
-    return EnumWeather[Number(code)] || 'sunny'
 }
 </script>
 

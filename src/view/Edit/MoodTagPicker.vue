@@ -1,9 +1,5 @@
 <template>
-    <section class="context-section">
-        <div class="context-section-header">
-            <h3>心情与标签</h3>
-            <p>给今天留一个更容易回看的入口。</p>
-        </div>
+    <div class="mood-tag-picker">
         <NForm label-placement="top" :show-feedback="false">
             <NFormItem label="心情">
                 <NSelect
@@ -17,7 +13,7 @@
                 <NDynamicTags :value="tags" @update:value="value => emit('update:tags', value)"/>
             </NFormItem>
         </NForm>
-    </section>
+    </div>
 </template>
 
 <script lang="ts" setup>
