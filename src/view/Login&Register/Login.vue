@@ -177,6 +177,29 @@ function useTestAccount() {
     box-shadow: var(--diary-card-shadow);
     backdrop-filter: blur(20px);
 }
+.logo-wrapper{
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+.logo{
+    width: 88px;
+    height: 88px;
+    flex: 0 0 88px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid var(--diary-border);
+    border-radius: var(--diary-radius);
+    background: var(--diary-surface);
+    box-shadow: var(--diary-hairline-shadow);
+    img{
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+}
 .ios-login-heading{
     margin-bottom: 28px;
     text-align: center;
@@ -252,6 +275,14 @@ function useTestAccount() {
     }
     .ios-login-card{
         padding: 24px;
+    }
+    .logo-wrapper{
+        margin-bottom: 20px;
+    }
+    .logo{
+        width: 76px;
+        height: 76px;
+        flex-basis: 76px;
     }
 }
 </style>
