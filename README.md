@@ -1,64 +1,72 @@
-# 日记
+# 日记 Diary
 
-一个单人使用的 Web 日记系统。前端使用 Vue 3 + Vite + Naive UI，后端使用轻量 Node 服务，日记正文保存为 Markdown 文件，索引用 JSON 维护。
+一个面向个人使用的 Web 日记系统：用 Markdown 保存正文，用 JSON 维护索引，支持写作、检索、日历和数据备份。
 
-## 数据
+## 功能
 
-- `data/entries/YYYY/MM/{id}.md`
-- `data/index.json`
-- `data/config.json`
-- `data/backups/`
-- `data/trash/`
+- 新建、编辑、删除与恢复日记
+- 分类、标签、心情和全文搜索
+- 日历视图、写作统计和导出
+- 创建日记时可记录城市、天气、湿度与风况
+- 数据备份、回收站和索引维护
+- PWA 离线缓存与响应式界面
 
-## 本地运行
+## 技术栈
 
-```powershell
+- 前端：Vue 3、Vite、TypeScript、Naive UI、Pinia
+- 服务端：Node.js 原生 HTTP 服务
+- 内容：Markdown 文件 + JSON 索引
+- 图表与渲染：ECharts、Marked、Highlight.js
+
+## 本地开发
+
+需要 Node.js 18+。
+
+~~~bash
 npm install
 npm run dev
-```
+~~~
 
-打开 [http://127.0.0.1:1021](http://127.0.0.1:1021)。
+开发服务默认监听 http://127.0.0.1:1021。生产构建与预览：
 
-本地默认密码是 `diary`。部署到公网前必须改掉。
-
-## 生产运行
-
-```powershell
+~~~bash
 npm run build
 npm start
-```
+~~~
 
-生产服务默认监听 `3000`，可以放在 Nginx/Caddy 后面做 HTTPS 反向代理。
+生产服务默认监听 3000，可放在 Nginx 或 Caddy 后面提供 HTTPS。
 
 ## 配置
 
-复制 `.env.example` 为 `.env`，按需配置：
+复制环境变量示例并填写安全值：
 
-```env
+~~~bash
+cp .env.example .env
+~~~
+
+~~~env
 ADMIN_PASSWORD_HASH=
 SESSION_SECRET=replace-with-a-long-random-secret
 DIARY_DATA_DIR=./data
 PORT=3000
-```
+~~~
 
-生成密码哈希：
+使用脚本生成管理员密码哈希：
 
-```powershell
+~~~bash
 npm run hash-password -- "你的新密码"
-```
+~~~
 
-把输出填入 `ADMIN_PASSWORD_HASH`。
+公网部署前请务必设置随机的 SESSION_SECRET、强密码哈希，并限制 data/ 目录权限。浏览器定位和天气服务需要在设置页配置；室内温度只能手动填写。
 
-## 功能
+## 目录
 
-- 写日记、编辑、删除和恢复
-- 搜索、分类、心情、标签
-- 日历视图和写作统计
-- 自动位置、天气和室外温度
-- 数据备份、导出、索引维护
+- src/：Vue 前端
+- server/：Node 服务、认证与 API
+- data/：日记正文、索引、备份和回收站
+- public/：静态资源
+- scripts/：构建与维护脚本
 
-## 天气与位置
+## 许可证
 
-系统设置里配置天气服务后，新建今天日记时可以使用浏览器定位或手动城市搜索，自动写入城市、天气、室外温度、湿度和风况。
-
-浏览器无法读取室内温度，因此室内温度仍由你手动输入。
+仓库中的 LICENSE 文件为准。
